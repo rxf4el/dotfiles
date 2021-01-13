@@ -1,2 +1,9 @@
-theme-readtheorg.setup
-config.org
+# Ignore erverything
+*
+
+# But these...
+!config-leaf.org
+!early-init.el
+!init.el
+!snippets/
+

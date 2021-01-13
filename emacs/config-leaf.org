@@ -134,7 +134,7 @@
         (global-font-lock-mode 1)
         (set-face-attribute 'default nil
                             :font "Iosevka"
-                            :height 115
+                            :height 120
                             :slant 'normal
                             :weight 'normal
                             :width 'normal)
