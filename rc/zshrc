@@ -1,0 +1,24 @@
+# Created by rxf4el for 5.8
+
+################################
+# ENVIRONMENTS VARIABLES
+################################
+# export PATH="${HOME}/.local/bin/:${PATH}"
+export BROWSER="firefox"
+export LANG="en_US.utf8"
+export LC_ALL="en_US.utf8"
+export EDITOR="emacs"
+export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel'
+
+################################
+# ALIASES
+################################
+alias x="startx"
+alias ls="ls --group-directories-first --color=auto -FhvpX"
+alias tree="tree --dirsfirst --sort=name -CF"
+alias cln="clear;neofetch"
+alias cl="clear"
+alias cdd="cd /media/data/"
+alias cat="bat"
+alias em="emacs"
+alias ee="emacs -nw"

@@ -1,0 +1,1969 @@
+#+TITLE: Emacs Config with Straight and Leaf
+#+AUTHOR: 
+#+EMAIL: 
+#+DATE: 2021-01-10
+
+* Header
+#+BEGIN_SRC emacs-lisp
+;;; config.el --- My config script -*- coding: utf-8 ; lexical-binding: t -*-
+;;; Author: rxf4e1
+;;; URL:
+;;; Commentary:
+;;; Code:
+#+END_SRC
+
+* Package Manager
+** Straight.el
+#+BEGIN_SRC emacs-lisp
+  ;; (setq straight-repository-branch "develop")
+
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+                                      'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+  (setq straight-check-for-modifications '(check-on-save-find-when-checking))
+
+  (require 'straight-x)
+#+END_SRC
+
+** Leaf.el
+#+BEGIN_SRC emacs-lisp
+  (straight-use-package 'leaf)
+  (straight-use-package 'leaf-keywords)
+  (straight-use-package 'blackout)
+
+  (leaf leaf
+        :require t
+        :init
+        (leaf leaf-keywords
+              :require t
+              :init
+              (require 'blackout)
+              (leaf-keywords-init)))
+#+END_SRC
+
+* Basic Settings
+** General Dependencies
+#+BEGIN_SRC emacs-lisp
+  (leaf general-deps
+        :doc "General Dependencies"
+        :require (cl-lib cl-seq))
+#+END_SRC
+
+** GCMH
+#+BEGIN_SRC emacs-lisp
+  (leaf gcmh
+        :doc "Garbage Collector Magick Hack."
+        :straight t
+        :init (gcmh-mode))
+#+END_SRC
+
+** Initial Settings
+#+BEGIN_SRC emacs-lisp
+  (leaf initial-settings
+        :doc "Define start custom settings."
+        :custom ((user-mail-address . "rxf4e1@tuta.io")
+                 (user-full-name    . "Rafael Mironiuc Marte")
+                 (user-login-name   . "rxf4e1"))
+        :config
+        (defconst my:d:org (concat (getenv "HOME") "/Nextcloud/Org/"))
+        (global-unset-key (kbd "C-z"))
+        (global-unset-key (kbd "C-x C-z")))
+#+END_SRC
+
+** Better Defaults
+#+BEGIN_SRC emacs-lisp
+  (leaf better-defaults
+        :doc "Better Default Variables."
+        :config
+        (setq enable-dir-local-variables      t
+              frame-title-format              nil
+              frame-resize-pixelwise          t
+              require-final-newline           t
+              delete-selection-mode           t
+              auto-fill-mode                  1
+              fill-column                     72
+              font-lock-maximum-decoration    nil
+              font-lock-maximum-size          nil
+              warning-minimum-level           :emergency
+              large-file-warning-threshold    (* 15 1024 1024)
+              inhibit-startup-message         t)
+
+        (setq-default indent-tabs-mode        nil
+                      tab-always-indent       'complete
+                      tab-width               2
+                      major-mode              'text-mode
+                      ispell-program-name     "aspell")
+
+        ;; Encoding System
+        (prefer-coding-system 'utf-8)
+        (set-file-name-coding-system 'utf-8)
+        (set-keyboard-coding-system 'utf-8)
+        (set-terminal-coding-system 'utf-8)
+        (set-language-environment 'utf-8)
+        (set-default 'buffer-file-coding-system 'utf-8)
+
+        ;; y/n for answering yes/no questions
+        (fset 'yes-or-no-p 'y-or-n-p))
+#+END_SRC
+
+** Aesthetics
+*** Custom Faces
+#+BEGIN_SRC emacs-lisp
+  (leaf custom-set-faces
+        :doc "TODO"
+        :config
+        (leaf all-the-icons :straight t)
+        (leaf pcache
+          :straight t
+          :init
+          (setq pcache-directory (let ((dir (concat conf:cache-dir "pcache/")))
+                                   (make-directory dir t)
+                                   dir)))
+        (leaf unicode-fonts
+          :straight t
+          :init (unicode-fonts-setup))
+
+        (global-font-lock-mode 1)
+        (set-face-attribute 'default nil
+                            :font "Iosevka"
+                            :height 115
+                            :slant 'normal
+                            :weight 'normal
+                            :width 'normal)
+
+        (global-prettify-symbols-mode))
+#+END_SRC
+
+*** ModeLine
+#+BEGIN_SRC emacs-lisp
+  (leaf telephone-line
+        :doc "Telephoneline"
+        :straight t
+        :init (telephone-line-mode)
+        :config
+        (setq telephone-line-primary-right-separator   'telephone-line-abs-left
+              telephone-line-secondary-right-separator 'telephone-line-abs-hollow-left
+              telephone-line-height                    16
+              telephone-line-evil-use-short-tag        nil)
+
+        (setq telephone-line-lhs
+              '((evil   . (telephone-line-evil-tag-segment))
+                (accent . (telephone-line-airline-position-segment
+                           telephone-line-process-segment))
+                (nil    . (telephone-line-vc-segment))))
+
+        (setq telephone-line-rhs
+              '((nil    . (telephone-line-misc-info-segment
+                           telephone-line-major-mode-segment))
+                (accent . (telephone-line-minor-mode-segment))
+                (evil   . (telephone-line-buffer-segment)))))
+#+END_SRC
+
+*** Theme
+#+BEGIN_SRC emacs-lisp
+  (leaf theme
+        :doc "Editor's Themes."
+        :config
+        (leaf modus-vivendi-theme
+              :doc "Modus Vivendi Theme by Protesilaos."
+              :url ""
+              :straight t
+              :config (load-theme 'modus-vivendi t)))
+#+END_SRC
+
+* General Settings
+** Built-ins
+*** Abbrev
+    #+BEGIN_SRC emacs-lisp
+      (leaf abbrev
+        :blackout abbrev-mode
+        :config
+        (abbrev-mode t)
+        (setq abbrev-file-name (concat conf:cache-dir "abbrev.el")
+              save-abbrevs 'silently
+              default-abbrev-mode t
+              save-abbrevs t)
+        (when (file-exists-p abbrev-file-name)
+        (quietly-read-abbrev-file)))
+    #+END_SRC
+
+*** Bookmark
+#+BEGIN_SRC emacs-lisp
+(leaf bookmark
+  :config
+  (setq bookmark-default-file  (concat conf:cache-dir "bookmarks"))
+  (when (file-exists-p bookmark-default-file)
+    (bookmark-load bookmark-default-file t)))
+#+END_SRC
+
+*** Custom
+#+BEGIN_SRC emacs-lisp
+  (leaf custom-file
+    :doc ""
+    :config
+    (setq custom-file (concat conf:cache-dir "custom.el"))
+    (unless (file-exists-p custom-file)
+      (with-temp-buffer
+        (write-file custom-file)))
+    (load custom-file))
+#+END_SRC
+
+*** Buffers
+**** Auto-Revert
+#+BEGIN_SRC emacs-lisp
+(leaf autorever
+  :blackout auto-revert-mode
+  :config (setq auto-revert-remote-files t
+                auto-revert-interval 1))
+#+END_SRC
+
+**** Ibuffer
+     #+BEGIN_SRC emacs-lisp
+       (leaf ibuffer
+         :bind ("C-x C-b" . ibuffer)
+         :config
+         (setq ibuffer-saved-filter-groups
+               (quote (("default"
+                        ("org" (name . "^.*org$"))
+
+                        ("web" (or (mode . web-mode)
+                                   (mode . php-mode)
+                                   (mode . js2-mode)))
+                        ("shell" (or (mode . eshell-mode)
+                                     (mode . term-mode)
+                                     (mode . shell-mode)))
+                        ("prog" (or (mode . python-mode)
+                                    (mode . nxml-mode)
+                                    (mode . clojure-mode)))
+                        ("emacs" (or
+                                  (name . "^\\*scratch\\*$")
+                                  (name . "^\\*Messages\\*$")))
+                        ))))
+         ;; Don't show filter groups if there are no buffers in that group
+         (setq ibuffer-show-empty-filter-groups nil)
+
+         ;; Don't ask for confirmation to delete marked buffers
+         (setq ibuffer-expert t)
+       :hook (ibuffer-mode-hook . (lambda ()
+                                    (ibuffer-auto-mode 1)
+                                    (ibuffer-switch-to-saved-filter-groups "default"))))
+     #+END_SRC
+
+**** Uniquify
+#+BEGIN_SRC emacs-lisp
+  (leaf uniquify
+    :doc ""
+    :config
+    (setq uniquify-buffer-name-style 'post-forward-angle-brackets
+          uniquify-separator "/"
+          uniquify-after-kill-buffer-p t
+          uniquify-ignore-buffers-re "*[^*]+*"))
+#+END_SRC
+
+**** Xah-Buffer-Management
+ #+BEGIN_SRC emacs-lisp
+   (defvar xah-recently-closed-buffers nil
+     "alist of recently closed buffers. Each element is (buffer name, file path).
+   The max number to track is controlled by the variable `xah-recently-closed-buffers-max'.")
+
+   (defvar xah-recently-closed-buffers-max 40
+     "The maximum length for `xah-recently-closed-buffers'.")
+
+   (defun xah-close-current-buffer ()
+     "Close the current buffer.
+
+   Similar to `kill-buffer', with the following addition:
+
+   • Prompt user to save if the buffer has been modified even if the buffer is not associated with a file.
+   • If the buffer is editing a source file in an org-mode file, prompt the user to save before closing.
+   • If the buffer is a file, add the path to the list `xah-recently-closed-buffers'.
+   • If it is the minibuffer, exit the minibuffer
+
+   URL `http://ergoemacs.org/emacs/elisp_close_buffer_open_last_closed.html'
+   Version 2016-06-19"
+     (interactive)
+     (let ($emacs-buff-p
+           ($org-p (string-match "^*Org Src" (buffer-name))))
+
+       (setq $emacs-buff-p (if (string-match "^*" (buffer-name)) t nil))
+
+       (if (string= major-mode "minibuffer-inactive-mode")
+           (minibuffer-keyboard-quit) ; if the buffer is minibuffer
+         (progn
+           ;; offer to save buffers that are non-empty and modified, even for non-file visiting buffer. (because kill-buffer does not offer to save buffers that are not associated with files)
+           (when (and (buffer-modified-p)
+                      (not $emacs-buff-p)
+                      (not (string-equal major-mode "dired-mode"))
+                      (if (equal (buffer-file-name) nil)
+                          (if (string-equal "" (save-restriction (widen) (buffer-string))) nil t)
+                        t))
+             (if (y-or-n-p (format "Buffer %s modified; Do you want to save? " (buffer-name)))
+                 (save-buffer)
+               (set-buffer-modified-p nil)))
+           (when (and (buffer-modified-p)
+                      $org-p)
+             (if (y-or-n-p (format "Buffer %s modified; Do you want to save? " (buffer-name)))
+                 (org-edit-src-save)
+               (set-buffer-modified-p nil)))
+
+           ;; save to a list of closed buffer
+           (when (buffer-file-name)
+             (setq xah-recently-closed-buffers
+                   (cons (cons (buffer-name) (buffer-file-name)) xah-recently-closed-buffers))
+             (when (> (length xah-recently-closed-buffers) xah-recently-closed-buffers-max)
+               (setq xah-recently-closed-buffers (butlast xah-recently-closed-buffers 1))))
+
+           ;; close
+           (kill-buffer (current-buffer))))))
+   (defun xah-open-last-closed ()
+     "Open the last closed file.
+   URL `http://ergoemacs.org/emacs/elisp_close_buffer_open_last_closed.html'
+   Version 2016-06-19"
+     (interactive)
+     (if (> (length xah-recently-closed-buffers) 0)
+         (find-file (cdr (pop xah-recently-closed-buffers)))
+       (progn (message "No recently close buffer in this session."))))
+
+   (defun xah-open-recently-closed ()
+     "Open recently closed file.
+   Prompt for a choice.
+   URL `http://ergoemacs.org/emacs/elisp_close_buffer_open_last_closed.html'
+   Version 2016-06-19"
+     (interactive)
+     (find-file (ido-completing-read "open:" (mapcar (lambda (f) (cdr f)) xah-recently-closed-buffers))))
+
+   (defun xah-list-recently-closed ()
+     "List recently closed file.
+   URL `http://ergoemacs.org/emacs/elisp_close_buffer_open_last_closed.html'
+   Version 2016-06-19"
+     (interactive)
+     (let (($buf (generate-new-buffer "*recently closed*")))
+       (switch-to-buffer $buf)
+       (mapc (lambda ($f) (insert (cdr $f) "\n"))
+             xah-recently-closed-buffers)))
+
+   (global-set-key (kbd "C-x k") 'xah-close-current-buffer)
+   (global-set-key (kbd "C-S-t") 'xah-open-last-closed) ; control+shift+t
+ #+END_SRC
+
+*** Dired
+#+BEGIN_SRC emacs-lisp
+(leaf dired-sidebar
+  :straight t
+  :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
+  :commands (dired-sidebar-toggle-sidebar)
+  :init
+  (add-hook 'dired-sidebar-mode-hook
+            (lambda ()
+              (unless (file-remote-p default-directory)
+                (auto-revert-mode))))
+  :config
+  (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
+  (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
+
+  (setq dired-sidebar-subtree-line-prefix "__")
+  (setq dired-sidebar-use-term-integration t)
+  (setq dired-sidebar-use-custom-font t))
+#+END_SRC
+
+*** Dirs
+    #+BEGIN_SRC emacs-lisp
+      (leaf dirs
+        :doc ""
+        :config
+        (setq-default semanticdb-default-save-directory (concat conf:cache-dir "semanticdb/")
+                    url-configuration-directory (concat conf:cache-dir "url/")
+                    eshell-directory-name (concat conf:cache-dir "eshell/" )))
+    #+END_SRC
+
+*** Flymake
+#+BEGIN_SRC emacs-lisp
+(leaf flymake
+  :require t
+  :setq (flymake-fringe-indicator-position . 'right-fringe))
+
+(leaf flymake-diagnostic-at-point
+  :straight (flymake-diagnostic-at-point
+             :type git
+             :host github
+             :repo "waymondo/flymake-diagnostic-at-point")
+  :after flymake
+  :setq (flymake-diagnostic-at-point-display-diagnostic-function . 'flymake-diagnostic-at-point-display-posframe)
+  :hook (flymake-mode-hook . flymake-diagnostic-at-point-mode))
+#+END_SRC
+
+*** Hippie-Expand
+#+BEGIN_SRC emacs-lisp
+  (leaf hippie-expand
+    :doc "Try Hippie-Expand for sane" completions.
+    :bind (("s-'" . hippie-expand))
+    :config
+    (setq hippie-expand-verbose t
+          hippie-expand-try-functions-list
+          '(yas/hippie-try-expand
+            try-complete-file-name
+            try-complete-file-name-partially
+            try-expand-list
+            try-expand-list-all-buffers
+            try-expand-line
+            try-expand-line-all-buffers
+            try-expand-all-abbrevs
+            try-expand-dabbrev
+            try-expand-dabbrev-all-buffers
+            try-expand-dabbrev-from-kill
+            try-complete-lisp-symbol-partially
+            try-complete-lisp-symbol)))
+#+END_SRC
+
+*** History
+#+BEGIN_SRC emacs-lisp
+  (leaf history
+    :doc ""
+    :config
+    (setq-default history-length 500)
+    (setq savehist-file (concat conf:cache-dir "history")
+          history-delete-duplicates t
+          savehist-save-minibuffer-history 1
+          savehist-additional-variables
+          '(kill-ring
+            search-ring
+            regexp-search-ring))
+    (savehist-mode t))
+#+END_SRC
+
+*** ISearch
+#+BEGIN_SRC emacs-lisp
+  (leaf isearch
+    :doc ""
+    :setq ((search-highlight . t)
+           (isearch-lax-whitespace . t)
+           (isearch-regexp-lax-whitespace . nil)
+           (serach-whitespace-regexp . ".*?")
+           (isearch-lazy-highlight . t)
+           (isearch-lazy-count . t)
+           (lazy-count-prefix-format . nil)
+           (lazy-count-suffix-format . " (%s/%s)")
+           (isearch-yank-on-move . 'shift)
+           (isearch-allow-scroll . 'unlimited)))
+#+END_SRC
+
+*** Recentf
+    #+BEGIN_SRC emacs-lisp
+  (leaf recentf
+    :doc "Open recent files list."
+    :bind ("C-s-r" . recentf-open-files)
+    :config
+    (setq recentf-max-menu-items 10
+          recentf-max-saved-items 10)
+    (recentf-mode 1))
+#+END_SRC
+
+*** SavePlace
+#+BEGIN_SRC emacs-lisp
+  (leaf save-place
+    :doc ""
+    :disabled t
+    :config
+    (save-place-mode 1))
+#+END_SRC
+
+*** Semantic
+    #+BEGIN_SRC emacs-lisp
+    (leaf semantic
+      :require t
+      :config (semantic-mode 1)) 
+    #+END_SRC
+    
+*** ScratchPad
+    #+BEGIN_SRC emacs-lisp
+;; (leaf persistent-scratch
+;;   :straight t
+;;   :disabled t
+;;   :config
+;;   (setq persistent-scratch-save-file (concat conf:cache-dir "scratch"))
+;;   (persistent-scratch-autosave-mode 1))
+    #+END_SRC
+    
+*** Tramp
+*** Wind-Move
+** Third-Part
+*** Ace-Window
+#+BEGIN_SRC emacs-lisp
+(leaf ace-window
+  :doc ""
+  :straight t
+  :bind ("C-x o" . ace-window)
+  :config 
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+#+END_SRC
+
+*** Auto-Indentation
+#+BEGIN_SRC emacs-lisp
+(leaf aggressive-indent
+    :doc ""
+    :straight t
+    :config
+    (global-aggressive-indent-mode 1))
+#+END_SRC
+
+*** Avy
+#+BEGIN_SRC emacs-lisp
+(leaf avy
+  :straight t
+  :bind (("C-:" . avy-goto-char-timer)
+         ("M-g M-g" . avy-goto-line))
+  :config
+  (setq avy-all-windows t))
+#+END_SRC
+
+*** BugHunter
+#+BEGIN_SRC emacs-lisp
+(leaf bug-hunter
+  :straight t
+  :commands (bug-hunter-file bug-hunter-init-file))
+
+#+END_SRC
+
+*** Org-GCal
+#+BEGIN_SRC emacs-lisp
+(leaf org-gcal
+  :doc ""
+  :straight t
+  :config
+  (setq org-gcal-client-id "70155025522-sod2sd5j69fqbtajhnllgmgprhavspo5.apps.googleusercontent.com"
+        org-gcal-client-secret "x58hbBKXDZ8JfdEdeDYYC8_u"
+        org-gcal-fetch-file-alist '(("rxf4el@gmail.com" .  "~/Dropbox/org/inbox.org"))))
+
+(leaf calfw
+  :straight t
+  :config
+  (setq cfw:display-calendar-holidays nil
+        calendar-week-start-day 1
+        cfw:fchar-junction ?╬
+        cfw:fchar-vertical-line ?║
+        cfw:fchar-horizontal-line ?═
+        cfw:fchar-left-junction ?╠
+        cfw:fchar-right-junction ?╣
+        cfw:fchar-top-junction ?╦
+        cfw:fchar-top-left-corner ?╔
+        cfw:fchar-top-right-corner ?╗))
+
+(leaf calfw-org
+  :straight t
+  :bind ("C-c f" . cfw:open-org-calendar)
+  :require t
+  :config
+  (setq cfw:org-overwrite-default-keybinding t))
+#+END_SRC
+
+*** Crux
+#+BEGIN_SRC emacs-lisp
+  (leaf crux
+    :doc ""
+    :straight t
+    :bind (("C-a"     . crux-move-beginning-of-line)
+           ("C-c d"   . crux-duplicate-current-line-or-region)
+           ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
+           ("C-c i"   . crux-ispell-word-then-abbrev)))
+#+END_SRC
+
+*** Expand-Region
+#+BEGIN_SRC emacs-lisp
+(leaf expand-region
+  :doc ""
+  :straight t
+  :bind (("C-="   . er/expand-region)
+         ("C-M-=" . er/contract-region)))
+#+END_SRC
+
+*** iMenu
+    #+BEGIN_SRC emacs-lisp
+      (leaf imenu-list
+        :straight t
+        :bind ("M-2" . imenu-list-smart-toggle)
+        :config
+        (setq imenu-list-size 36
+              imenu-list-position 'left
+              imenu-list-focus-after-activation t
+              imenu-list-after-jump-hook nil))
+    #+END_SRC
+    
+*** FlyCheck
+#+BEGIN_SRC emacs-lisp
+(leaf flycheck
+  :straight t
+  :leaf-defer nil
+  :bind (("C-c e n" . flycheck-next-error)
+         ("C-c e p" . flycheck-previous-error))
+  :init
+  (define-fringe-bitmap 'flycheck-fringe-bitmap-arrow
+    (vector #b00000000
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00011001
+            #b00110110
+            #b01101100
+            #b11011000
+            #b01101100
+            #b00110110
+            #b00011001
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00000000
+            #b00000000))
+  (flycheck-define-error-level 'error
+    :severity 2
+    :overlay-category 'flycheck-error-overlay
+    :fringe-bitmap 'flycheck-fringe-bitmap-arrow
+    :fringe-face 'flycheck-fringe-error)
+  (flycheck-define-error-level 'warning
+    :severity 1
+    :overlay-category 'flycheck-warning-overlay
+    :fringe-bitmap 'flycheck-fringe-bitmap-arrow
+    :fringe-face 'flycheck-fringe-warning)
+  (flycheck-define-error-level 'info
+    :severity 0
+    :overlay-category 'flycheck-info-overlay
+    :fringe-bitmap 'flycheck-fringe-bitmap-arrow
+    :fringe-face 'flycheck-fringe-info)
+  (setq flycheck-indication-mode 'right-fringe)
+  :hook (after-init-hook . global-flycheck-mode))
+
+(leaf flycheck-posframe
+  :straight t
+  :after flycheck
+  :hook (flycheck-mode-hook . flycheck-posframe-mode))
+#+END_SRC
+
+*** Git
+#+BEGIN_SRC emacs-lisp
+(setq vc-follows-symlinks t
+      auto-revert-check-vc-info t
+      find-file-visit-truename t)
+
+(leaf transient
+  :straight t
+  :config (setq transient-history-file (concat conf:cache-dir "transient.el")))
+
+(leaf magit
+  :straight t
+  :bind* (("C-x g c" . magit-commit-create)
+          ("C-x g e" . magit-ediff-resolve)
+          ("C-x g g" . magit-grep)
+          ("C-x g l" . magit-file-log)
+          ("C-x g p" . magit-push-other)
+          ("C-x g r" . magit-rebase-interactive)
+          ("C-x g s" . magit-status)
+          ("C-x g u" . magit-pull-other)
+          ("C-x g x" . magit-checkout))
+  :init
+  (progn
+    (defadvice magit-status (around magit-fullscreen activate)
+      (window-configuration-to-register :magit-fullscreen)
+      ad-do-it
+      (delete-other-windows))
+    (defadvice git-commit-commit (after delete-window activate)
+      (delete-window))
+    (defadvice git-commit-abort (after delete-window activate)
+      (delete-window))
+    (defun magit-commit-mode-init ()
+      (when (looking-at "\n")
+        (open-line 1))))
+  :config
+  (progn
+    (defadvice magit-quit-window (around magit-restore-screen activate)
+      (let ((current-mode major-mode))
+        ad-do-it
+        (when (eq 'magit-status-mode current-mode)
+          (jump-to-register :magit-fullscreen))))
+    (defun magit-maybe-commit (&optional show-options)
+      "Runs magit-commit unless prefix is passed"
+      (interactive "P")
+      (if show-options
+          (magit-key-mode-popup-committing)
+        (magit-commit-create)))
+    (define-key magit-mode-map "c" 'magit-maybe-commit)
+
+    (setq magit-completing-read-function 'ivy-completing-read
+          magit-default-tracking-name-function 'magit-default-tracking-name-branch-only
+          magit-status-buffer-switch-function 'switch-to-buffer
+          magit-diff-refine-hunk t
+          magit-rewrite-inclusive 'ask
+          magit-process-find-password-functions '(magit-process-password-auth-source)
+          magit-save-some-buffers t
+          magit-process-popup-time 10
+          magit-set-upstream-on-push 'askifnotset
+          magit-refs-show-commit-count 'all
+          magit-log-buffer-file-locket t)))
+
+(leaf magit-gitflow
+  :straight t
+  :require t
+  :hook (magit-mode-hook . turn-on-magit-gitflow))
+
+(leaf git-gutter
+  :straight t
+  :leaf-defer nil
+  :bind (("C-x C-g" . git-gutter)
+         ("C-x v =" . git-gutter:popup-hunk)
+         ("C-x p" . git-gutter:previous-hunk)
+         ("C-x n" . git-gutter:next-hunk)
+         ("C-x v s" . git-gutter:stage-hunk)
+         ("C-x v r" . git-gutter:revert-hunk)
+         ("C-x v SPC" . git-gutter:mark-hunk))
+  :config
+  (if (display-graphic-p)
+      (leaf git-gutter-fringe
+        :straight t
+        :require t
+        :config
+        (define-fringe-bitmap 'git-gutter-fr:added [224]
+          nil nil '(center repeated))
+        (define-fringe-bitmap 'git-gutter-fr:modified [224]
+          nil nil '(center repeated))
+        (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
+          nil nil 'bottom)))
+  (global-git-gutter-mode t)
+  (setq indicate-empty-lines nil)
+  (setq git-gutter:handled-backends '(git hg bzr svn)))
+
+(leaf gitconfig-mode
+  :straight t
+  :leaf-defer nil
+  :mode ("/\\.?git/?config$"
+         "/\\.gitmodules$")
+  :hook (gitconfig-mode-hook . flyspell-mode))
+
+(leaf gitignore-mode
+  :straight t
+  :leaf-defer nil
+  :mode ("/\\.gitignore$"
+         "/\\.git/info/exclude$"
+         "/git/ignore$"))
+
+(leaf gitattributes-mode
+  :straight t
+  :leaf-defer nil)
+
+(leaf git-timemachine
+  :straight t
+  :leaf-defer nil
+  :commands git-timemachine
+  :bind (git-timemachine-mode
+         ("c" . git-timemachine-show-current-revision)
+         ("b" . git-timemachine-switch-branch)))
+#+END_SRC
+
+*** Helm/Ivy
+**** Helm(?)
+**** Ivy/Counsel/Swiper
+***** General Config
+#+BEGIN_SRC emacs-lisp
+(leaf ivy
+  :straight
+  :blackout ivy-mode
+  :bind (:ivy-minibuffer-map
+         ("C-'" . ivy-avy))
+  :config
+  (setq ivy-wrap t
+        ivy-virtual-abbreviate 'full
+        ivy-use-virtual-buffers t
+        ivy-use-selectable-prompt t
+        ivy-count-format "(%d/%d) "
+        ivy-re-builders-alist '((read-file-name-internal . ivy--regex-fuzzy)
+                                (t . ivy--regex-plus))
+        ivy-on-del-error-function nil
+        ivy-initial-inputs-alist nil
+        enable-recursive-minibuffers t)
+
+  (add-to-list 'ivy-ignore-buffers "\\*Async Shell Command\\*")
+  (add-to-list 'ivy-ignore-buffers "\\*Messages\\*")
+  (add-to-list 'ivy-ignore-buffers "\\*elfeed-log\\*")
+  (add-to-list 'ivy-ignore-buffers "\\*Help\\*")
+  (add-to-list 'ivy-ignore-buffers "\\*Compile-Log\\*")
+  (add-to-list 'ivy-ignore-buffers "\\*magit-.*")
+  (add-to-list 'ivy-ignore-buffers "\\magit-.*")
+  (add-to-list 'ivy-ignore-buffers "\\*tide")
+  (add-to-list 'ivy-ignore-buffers "\\*Flycheck.*")
+  (add-to-list 'ivy-ignore-buffers "\\*lsp-.*")
+  (add-to-list 'ivy-ignore-buffers "\\*git-gutter:.*")
+  (with-eval-after-load "projectile"
+    (setf projectile-globally-ignored-buffers ivy-ignore-buffers))
+  (ivy-mode 1))
+
+(leaf prescient
+  :straight t
+  :require t
+  :config
+  (setq prescient-save-file (concat conf:cache-dir "prescient.el"))
+  (prescient-persist-mode))
+
+(leaf ivy-prescient
+  :straight t
+  :require t
+  :after ivy
+  :init (ivy-prescient-mode))
+(leaf ivy-xref
+  :straight t
+  :require t
+  :init (if (< emacs-major-version 27)
+            (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
+          (setq xref-show-definitions-function #'ivy-xref-show-defs)))
+
+;;(setq confirm-nonexistent-file-or-buffer t)
+
+(leaf swiper
+  :straight t
+  :bind* (("C-s" . swiper)
+          ("C-r" . swiper)
+          ("C-M-s" . swiper-all))
+  :bind (:read-expression-map
+         ("C-r" . counsel-minibuffer-history)))
+
+(leaf counsel
+  :straight t
+  :bind (("M-x" . counsel-M-x)
+         ("C-c b" . counsel-imenu)
+         ("C-x C-r" . counsel-rg)
+         ("C-x C-f" . counsel-find-file)
+         ("C-h f" . counsel-describe-function)
+         ("C-h v" . counsel-describe-variable)
+         ("C-h b" . counsel-descbinds)
+         ("M-y" . counsel-yank-pop)
+         ("M-SPC" . counsel-shell-history))
+  :config
+  (setq counsel-find-file-at-point t
+        counsel-rg-base-command "rg -uuu -S -g '!/volumes' -g '!/backups' -g '!/.git' --no-heading --line-number --color never %s"))
+
+(leaf ivy-rich
+  :straight t
+  :config
+  (setq ivy-rich-display-transformers-list
+        '(ivy-switch-buffer
+          (:columns
+           ((ivy-rich-candidate (:width 30))  ; return the candidate itself
+            (ivy-rich-switch-buffer-size (:width 7))  ; return the buffer size
+            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right)); return the buffer indicators
+            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))          ; return the major mode info
+            (ivy-rich-switch-buffer-project (:width 15 :face success))             ; return project name using `projectile'
+            (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))  ; return file path relative to project root or `default-directory' if project is nil
+           :predicate
+           (lambda (cand) (get-buffer cand)))
+          counsel-M-x
+          (:columns
+           ((counsel-M-x-transformer (:width 40))  ; thr original transfomer
+            (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))  ; return the docstring of the command
+          counsel-describe-function
+          (:columns
+           ((counsel-describe-function-transformer (:width 40))  ; the original transformer
+            (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))  ; return the docstring of the function
+          counsel-describe-variable
+          (:columns
+           ((counsel-describe-variable-transformer (:width 40))  ; the original transformer
+            (ivy-rich-counsel-variable-docstring (:face font-lock-doc-face))))  ; return the docstring of the variable
+          counsel-recentf
+          (:columns
+           ((ivy-rich-candidate (:width 0.8)) ; return the candidate itself
+            (ivy-rich-file-last-modified-time (:face font-lock-comment-face))))) ; return the last modified time of the file
+        ivy-virtual-abbreviate 'full
+        ivy-rich-path-style 'abbrev)
+  (ivy-rich-mode 1))
+#+END_SRC
+
+***** Tunning
+#+BEGIN_SRC emacs-lisp
+(leaf maple-minibuffer
+  :straight (maple-minibuffer
+             :type git :host github :repo "honmaple/emacs-maple-minibuffer")
+  :require t
+  :config
+  (setq maple-minibuffer:position-type 'window-bottom-left
+        maple-minibuffer:height nil
+        maple-minibuffer:border-color "gray50"
+        maple-minibuffer:width 100)
+
+  ;; more custom parameters for frame
+  (defun maple-minibuffer:parameters ()
+    "Maple minibuffer parameters."
+    `((height . ,(or maple-minibuffer:height 10))
+      (width . ,(or (window-width) maple-minibuffer:width))
+      (left-fringe . 5) (right-fringe . 5)))
+  :hook (after-init-hook . maple-minibuffer-mode))
+#+END_SRC
+
+***** Ivy-Bibtex
+#+BEGIN_SRC emacs-lisp
+  (leaf ivy-bibtex
+    :doc ""
+    :straight t
+    :config
+    (setq bibtex-completion-notes-path "~/Dropbox/org/biblio/"
+          bibtex-completion-bibliography (list "~/Dropbox/org/biblio/ref.bib")
+          bibtex-completion-library-path "~/Dropbox/org/biblio/papers/"
+          bibtex-completion-pdf-field "File"
+          bibtex-completion-notes-template-multiple-files
+          (concat
+           "#+TITLE: ${title}\n"
+           ;; "#+ROAM_KEY: cite:${=key=}\n"
+           "* TODO Notes\n"
+           ":PROPERTIES:\n"
+           ":CUSTOM_ID: ${=key=}\n"
+           ;; ":NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n"
+           ":AUTHOR: ${author-abbrev}\n"
+           ":JOURNAL: ${journaltitle}\n"
+           ":DATE: ${date}\n"
+           ":YEAR: ${year}\n"
+           ":DOI: ${doi}\n"
+           ":URL: ${url}\n"
+           ":END: ${end}\n\n")
+          ))
+#+END_SRC
+
+*** Hydra
+*** Modal Editing
+**** General
+#+BEGIN_SRC emacs-lisp
+  (leaf general
+        :doc ""
+        :url ""
+        :straight t
+        :config
+        ;; Make ESC quit prompts
+        (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+        (general-create-definer rx/leader-keys
+          :keymaps '(normal insert visual emacs)
+          :prefix "SPC"
+          :global-prefix "C-SPC")
+
+        (rx/leader-keys
+          "t"  '(:ignore t :which-key "toggles")
+          "tt" '(counsel-load-theme :which-key "choose theme")))
+#+END_SRC
+
+**** Evil-Mode
+#+BEGIN_SRC emacs-lisp
+(leaf evil
+  :doc ""
+  :url ""
+  :straight t
+  :setq ((evil-want-integration . t)
+         (evil-want-keybinding  . nil)
+         (evil-want-C-u-scroll  . t)
+         (evil-want-C-i-jump    . nil))
+  :init (evil-mode)
+  :config
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal)
+
+  (leaf evil-collection
+    :doc ""
+    :url ""
+    :straight t
+    :after evil
+    :config
+    (evil-collection-init)))
+#+END_SRC
+
+*** Neotree
+#+BEGIN_SRC emacs-lisp
+(leaf shrink-path
+  :straight t
+  :require t)
+
+(leaf neotree
+  :straight t
+  :bind (neotree-mode-map
+         ("<C-return>" . neotree-change-root)
+         ("C" . neotree-change-root)
+         ("c" . neotree-create-node)
+         ("+" . neotree-create-node)
+         ("d" . neotree-delete-node)
+         ("r" . neotree-rename-node))
+  :config
+  (setq neo-theme 'ascii
+        neo-vc-integration nil
+        neo-window-width 36
+        neo-create-file-auto-open t
+        neo-smart-open t
+        neo-show-auto-change-root t
+        neo-autorefresh nil
+        neo-banner-message nil
+        neo-mode-line-type 'neotree
+        neo-dont-be-alone t
+        neo-persist-show t
+        neo-show-updir-line nil
+        neo-show-hidden-files nil
+        neo-auto-indent-point t
+        neo-hidden-regexp-list '(".DS_Store" ".idea/" ".pyc" ".tern-port"
+                                 ".git/*" "node_modules/*" ".meteor" "deps"))
+
+  (defun shrink-root-entry (node)
+    "shrink-print pwd in neotree"
+    (insert (propertize (concat (shrink-path-dirs node) "\n") 'face `(:inherit (,neo-root-dir-face)))))
+
+  (advice-add #'neo-buffer--insert-root-entry :override #'shrink-root-entry))
+
+(defun neotree-project-dir-toggle ()
+    "Open NeoTree using the project root, using find-file-in-project,
+  or the current buffer directory."
+    (interactive)
+    (let ((project-dir
+           (ignore-errors
+             ;;; Pick one: projectile or find-file-in-project
+             (projectile-project-root)))
+          (file-name (buffer-file-name))
+          (neo-smart-open t))
+      (if (and (fboundp 'neo-global--window-exists-p)
+               (neo-global--window-exists-p))
+          (neotree-hide)
+        (progn
+          (neotree-show)
+          (if project-dir
+              (neotree-dir project-dir))
+          (if file-name
+              (neotree-find file-name))))))
+(global-set-key (kbd "M-1") 'neotree-project-dir-toggle)
+#+END_SRC
+
+*** Sublimity Scrolling
+#+BEGIN_SRC emacs-lisp
+(leaf scrolling
+  :doc ""
+  :config
+  (setq-default hscroll-margin 2
+                hscroll-step 1
+                scroll-conservatively 1001
+                scroll-margin 0
+                scroll-preserve-screen-position t)
+
+  (leaf sublimity-scroll
+    :straight sublimity
+    :require t
+    :init (sublimity-mode 1)))
+#+END_SRC
+
+*** Shackle
+#+BEGIN_SRC emacs-lisp
+(leaf shackle
+  :straight t
+  :init (shackle-mode)
+  :config
+  (setq shackle-default-size 0.4)
+  (setq shackle-rules
+        '(("*Calendar*" :select t :size 0.3 :align below)
+          ("*Compile-Log*" :ignore t)
+          ("*Completions*" :size 0.3  :align t)
+          ("*format-all-errors*" :select t :size 0.1 :align below)
+          ("*Help*" :select t :inhibit-window-quit t :other t)
+          ("*Messages*" :ignore t)
+          ("*Process List*" :select t :size 0.3 :align below)
+          ("*Proced*" :select t :size 0.3 :align below)
+          ("*Python*" :select t :size 0.3 :align bellow)
+          ("*Shell Command Output*" :select nil)
+          ("\\*TeX.*\\*" :regexp t :autoclose t :align below :size 10)
+          ("*Warnings*" :ignore t)
+          ("*el-get bootstrap*" :ignore t)
+          ("*undo-tree*" :size 0.25 :align left)
+          ("\\*Async Shell.*\\*" :regexp t :ignore t)
+          ("\\*[Wo]*Man.*\\*" :regexp t :select t :inhibit-window-quit t :other t)
+          ("\\*poporg.*\\*" :regexp t :select t :other t)
+          ("\\*shell*\\*" :select t :other t)
+          ("\\`\\*ivy.*?\\*\\'" :regexp t :size 0.3 :align t)
+          ("edbi-dbviewer" :regexp t :select t :same t)
+          ("*edbi:query-result" :regexp t :size 0.8 :align bellow)
+          (occur-mode :select nil :align t)
+          (pdf-view-mode :other t)
+          (compilation-mode :select nil))))
+#+END_SRC
+
+*** YaSnippet
+    #+BEGIN_SRC emacs-lisp
+      (leaf snippets
+        :doc ""
+        :config
+        (leaf yasnippet
+          :straight t
+          :blackout yas-minor-mode
+          :config (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
+          :hook (emacs-startup-hook . yas-global-mode))
+  
+        (leaf yasnippet-snippets :straight t)
+  
+        (leaf org-sync-snippets
+          :straight t
+          :require t
+          :init (setq org-sync-snippets-org-snippets-file "~/.emacs.d/snippets/snippets.org")
+          :hook (yas-after-reload-hook . org-sync-snippets-org-to-snippets))
+  
+        (leaf doom-snippets
+          :straight (doom-snippets
+                     :type git
+                     :host github
+                     :repo "hlissner/doom-snippets"
+                     :files ("*.el" "snippets"))
+          :after yasnippet))
+   #+END_SRC
+   
+*** Which-Key
+    #+BEGIN_SRC emacs-lisp
+      (leaf which-key
+        :straight t
+        :blackout which-key-mode
+        :config (setq which-key-sort-order 'which-key-key-order-alpha)
+        :hook (emacs-startup-hook . which-key-mode))
+    #+END_SRC
+
+** Coding
+*** Company
+#+BEGIN_SRC emacs-lisp
+(leaf company
+  :straight t
+  :blackout company-mode
+  :commands (company-complete-common company-manual-begin company-grab-line)
+  :init
+  (setq completion-styles `(basic partial-completion emacs22 initials
+                                  ,(if (version<= emacs-version "27.0") 'flex)))
+  (setq company-idle-delay 0.0
+        company-show-numbers t
+        company-minimum-prefix-length 1
+        company-tooltip-limit 12
+        company-dabbrev-downcase nil
+        company-dabbrev-ignore-case nil
+        company-dabbrev-code-other-buffers t
+        company-tooltip-align-annotations t
+        company-require-match 'never
+        company-global-modes '(not erc-mode message-mode gud-mode help-mode eshell-mode)
+        company-backends '(company-capf)
+        company-frontends '(company-pseudo-tooltip-frontend
+                            company-echo-metadata-frontend))
+
+  :config
+  (setq company-backends '((company-capf
+                            company-files
+                            company-keywords
+                            company-yasnippet)
+                           (company-abbrev company-dabbrev)))
+  (global-company-mode 1))
+
+(leaf company-prescient
+  :straight t
+  :require t
+  :after company
+  :init (company-prescient-mode))
+
+(leaf company-posframe
+  :straight t
+  :blackout company-posframe-mode
+  :config (company-posframe-mode))
+
+(leaf company-box
+  :straight t
+  :blackout company-box-mode
+  :config
+  (setq company-box-show-single-candidate t
+        company-box-backends-colors nil
+        company-box-max-candidates 50
+        company-box-icons-functions '(+company-box-icons--yasnippet +company-box-icons--elisp)
+        company-box-icons-alist 'company-box-icons-all-the-icons
+        company-box-icons-all-the-icons
+        `((Unknown       . ,(all-the-icons-material "find_in_page"             :height 0.8 :face 'all-the-icons-purple))
+          (Text          . ,(all-the-icons-material "text_fields"              :height 0.8 :face 'all-the-icons-green))
+          (Method        . ,(all-the-icons-material "functions"                :height 0.8 :face 'all-the-icons-red))
+          (Function      . ,(all-the-icons-material "functions"                :height 0.8 :face 'all-the-icons-red))
+          (Constructor   . ,(all-the-icons-material "functions"                :height 0.8 :face 'all-the-icons-red))
+          (Field         . ,(all-the-icons-material "functions"                :height 0.8 :face 'all-the-icons-red))
+          (Variable      . ,(all-the-icons-material "adjust"                   :height 0.8 :face 'all-the-icons-blue))
+          (Class         . ,(all-the-icons-material "class"                    :height 0.8 :face 'all-the-icons-red))
+          (Interface     . ,(all-the-icons-material "settings_input_component" :height 0.8 :face 'all-the-icons-red))
+          (Module        . ,(all-the-icons-material "view_module"              :height 0.8 :face 'all-the-icons-red))
+          (Property      . ,(all-the-icons-material "settings"                 :height 0.8 :face 'all-the-icons-red))
+          (Unit          . ,(all-the-icons-material "straighten"               :height 0.8 :face 'all-the-icons-red))
+          (Value         . ,(all-the-icons-material "filter_1"                 :height 0.8 :face 'all-the-icons-red))
+          (Enum          . ,(all-the-icons-material "plus_one"                 :height 0.8 :face 'all-the-icons-red))
+          (Keyword       . ,(all-the-icons-material "filter_center_focus"      :height 0.8 :face 'all-the-icons-red))
+          (Snippet       . ,(all-the-icons-material "short_text"               :height 0.8 :face 'all-the-icons-red))
+          (Color         . ,(all-the-icons-material "color_lens"               :height 0.8 :face 'all-the-icons-red))
+          (File          . ,(all-the-icons-material "insert_drive_file"        :height 0.8 :face 'all-the-icons-red))
+          (Reference     . ,(all-the-icons-material "collections_bookmark"     :height 0.8 :face 'all-the-icons-red))
+          (Folder        . ,(all-the-icons-material "folder"                   :height 0.8 :face 'all-the-icons-red))
+          (EnumMember    . ,(all-the-icons-material "people"                   :height 0.8 :face 'all-the-icons-red))
+          (Constant      . ,(all-the-icons-material "pause_circle_filled"      :height 0.8 :face 'all-the-icons-red))
+          (Struct        . ,(all-the-icons-material "streetview"               :height 0.8 :face 'all-the-icons-red))
+          (Event         . ,(all-the-icons-material "event"                    :height 0.8 :face 'all-the-icons-red))
+          (Operator      . ,(all-the-icons-material "control_point"            :height 0.8 :face 'all-the-icons-red))
+          (TypeParameter . ,(all-the-icons-material "class"                    :height 0.8 :face 'all-the-icons-red))
+          ;; (Template   . ,(company-box-icons-image "Template.png"))))
+          (Yasnippet     . ,(all-the-icons-material "short_text"               :height 0.8 :face 'all-the-icons-green))
+          (ElispFunction . ,(all-the-icons-material "functions"                :height 0.8 :face 'all-the-icons-red))
+          (ElispVariable . ,(all-the-icons-material "check_circle"             :height 0.8 :face 'all-the-icons-blue))
+          (ElispFeature  . ,(all-the-icons-material "stars"                    :height 0.8 :face 'all-the-icons-orange))
+          (ElispFace     . ,(all-the-icons-material "format_paint"             :height 0.8 :face 'all-the-icons-pink))))
+  (defun +company-box-icons--yasnippet (candidate)
+    (when (get-text-property 0 'yas-annotation candidate)
+      'Yasnippet))
+  (defun +company-box-icons--elisp (candidate)
+    (when (derived-mode-p 'emacs-lisp-mode)
+      (let ((sym (intern candidate)))
+        (cond ((fboundp sym)  'ElispFunction)
+              ((boundp sym)   'ElispVariable)
+              ((featurep sym) 'ElispFeature)
+              ((facep sym) 'ElispFace)))))
+
+  :hook (company-mode-hook . company-box-mode))
+#+END_SRC
+
+*** EditorConfig
+#+BEGIN_SRC emacs-lisp
+(leaf editorconfig
+  :straight t
+  :leaf-defer nil
+  :blackout editorconfig-mode
+  :config (editorconfig-mode))
+#+END_SRC
+
+*** Lsp
+#+BEGIN_SRC emacs-lisp
+(leaf lsp
+  :straight lsp-mode
+  :commands (lsp lsp-deferred)
+  :require t
+  :init
+  (setq lsp-eldoc-render-all nil
+        lsp-print-io nil
+        lsp-inhibit-message t
+        lsp-message-project-root-warning t
+        lsp-auto-guess-root t
+        lsp-prefer-flymake nil
+        lsp-session-file (concat conf:cache-dir "lsp-session"))
+  :hook (lsp-after-open-hook . lsp-enable-imenu))
+
+;; ref: https://gitlab.com/shackra/emacs/commit/b0df30fe744e4483a08731e6a9f6482ab408124c
+(defvar-local conf:lsp-on-change-exist nil
+  "indica si la función `lsp-on-change' estaba insertada en `after-change-functions'")
+
+(defun conf:lsp-on-change-modify-hook ()
+  "Remueve o agrega `lsp-on-change' de `after-change-functions'"
+  (if (not conf:lsp-on-change-exist)
+      ;; quita la función, solamente si estaba insertada desde un principio
+      (when (memq 'lsp-on-change after-change-functions)
+        (setq conf:lsp-on-change-exist t)
+        (remove-hook 'after-change-functions 'lsp-on-change t))
+    ;; agrega la función
+    (add-hook 'after-change-functions #'lsp-on-change nil t)
+    (setq conf:lsp-on-change-exist nil)))
+
+(leaf lsp-ui
+  :straight t
+  :after lsp
+  :commands lsp-ui-mode
+  :init
+  (setq lsp-ui-sideline-enable t
+        lsp-ui-sideline-ignore-duplicate t
+        lsp-ui-sideline-show-hover nil
+        lsp-ui-doc-enable nil)
+  :config
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+  :hook (lsp-mode-hook . lsp-ui-mode))
+
+(leaf company-lsp
+  :straight t
+  :require t
+  :commands company-lsp
+  :init
+  (setq company-lsp-async t)
+  (push '(company-lsp :with company-yasnippet) company-backends))
+
+(leaf lsp-ivy
+  :straight (lsp-ivy
+             :type git
+             :host github
+             :repo "emacs-lsp/lsp-ivy")
+  :require t)
+#+END_SRC
+
+*** Multiple-Cursors
+#+BEGIN_SRC emacs-lisp
+(leaf multiple-cursors
+  :straight t
+  :leaf-defer nil)
+#+END_SRC
+
+*** Org-Mode
+**** Org-defaults
+    #+BEGIN_SRC emacs-lisp
+;; Removes in-build version from the `load-path'
+(when-let (orglib (locate-library "org" nil load-path))
+  (setq-default load-path (delete (substring (file-name-directory orglib) 0 -1)
+                                  load-path)))
+
+(leaf org
+  :doc ""
+  :straight t
+  :bind (("C-x a" . org-agenda-list)
+         ("C-x c" . org-capture))
+  :blackout org-indent-mode
+  :config
+  (progn
+    (add-hook 'org-mode-hook
+              (lambda ()
+                (turn-on-auto-fill)
+                (org-indent-mode)))
+
+    ;; set the modules enabled by default
+    (setq org-modules '(org-bibtex 
+                        org-protocol org-id
+                        org-info org-habit org-annotate-file
+                        org-eval org-expiry org-tempo org-panel org-toc ox-md))
+
+    ;; set default directories
+    (setq org-id-locations-file (concat conf:cache-dir "org-id.el")
+          org-directory "~/Dropbox/org"
+          org-default-notes-file (concat org-directory "/notes.org"))
+
+    ;; set the archive
+    (setq org-archive-location (concat org-directory "/archive.org::datetree/** Archived"))
+
+    ;; highlight code blocks syntax
+    (setq org-src-fontify-natively t
+          org-src-window-setup 'current-window
+          org-src-strip-leading-and-trailing-blank-lines t
+          org-src-preserve-indentation t
+          org-src-tab-acts-natively t)
+
+    ;; more sane emphasis regex to export to HTML as substitute of Markdown
+    ;;(org-set-emph-re 'org-emphasis-regexp-components
+    ;;                 '(" \t({"
+    ;;		"- \t.,:!?;)}[:multibyte:]"
+    ;;		" \t\r\n,"
+    ;;		"."
+    ;;		1))
+
+    ;; highlight code blocks syntax in PDF export
+    ;; Include the latex-exporter
+    (leaf ox-latex :require t)
+    (setq org-latex-packages-alist nil
+          org-latex-default-packages-alist nil
+          org-latex-hyperref-template nil)
+    ;; Tell the latex export to use the minted package for source
+    ;; code coloration.
+    ;;(setq org-latex-listings 'minted)
+    ;; Let the exporter use the -shell-escape option to let latex
+    ;; execute external programs.
+    (setq org-latex-pdf-process
+          '("latexmk -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f"))
+
+    ;; tasks management
+    (setq org-refile-targets '((org-agenda-files :maxlevel . 1)))
+    (setq org-log-done t
+          org-clock-idle-time nil
+          org-todo-keywords (quote
+                             ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+                              (sequence "WAITING(w)" "HOLD(h)" "|" "CANCELLED(c)" "PHONE" "MEETING"))))
+
+    ;; agenda & diary
+    (setq org-columns-default-format "%50ITEM(Task) %10CLOCKSUM %16TIMESTAMP_IA")
+    (setq org-agenda-include-diary nil
+          org-agenda-tags-todo-honor-ignore-options t
+          org-agenda-start-on-weekday nil
+          org-agenda-start-day "-1d"
+          org-agenda-span 7
+          show-week-agenda-p t
+          org-agenda-timegrid-use-ampm 1
+          org-agenda-inhibit-startup t
+          org-agenda-files (quote
+                            ("~/Dropbox/org/work.org"
+                             "~/Dropbox/org/stuff.org"
+                             "~/Dropbox/org/inbox.org")))
+
+    (setq org-agenda-custom-commands
+          '(("Q" . "Custom queries") ;; gives label to "Q"
+            ("Qa" "Archive search" search "" ((org-agenda-files (file-expand-wildcards "~/Dropbox/org/archive.org"))))
+            ("n" todo "NEXT")
+            ("w" todo "WAITING")
+            ("d" "Agenda + Next Actions" ((agenda) (todo "NEXT")))))
+
+    ;; date insertion configuration
+    (setq org-expiry-created-property-name "CREATED"
+          org-expiry-inactive-timestamps t
+          org-todo-state-tags-triggers (quote
+                                        (("CANCELLED" ("CANCELLED" . t))
+                                         ("WAITING" ("WAITING" . t))
+                                         ("HOLD" ("WAITING") ("HOLD" . t))
+                                         (done ("WAITING") ("HOLD"))
+                                         ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+                                         ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+                                         ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
+    ;; capture
+    (setq org-capture-templates
+          '(("w" "Work TODO" entry
+             (file+olp "~/Dropbox/org/work.org" "Tasks") "* TODO %? \nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n:PROPERTIES:\n:CATEGORY: TASKS\n:CREATED: %U\n:END:")
+            ("o" "Work Overtime" entry
+             (file+olp "~/Dropbox/org/work.org" "COMMENT Overtime") "* %? \nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n:PROPERTIES:\n:CREATED: %U\n:END:")
+            ("m" "Work Meetings" entry
+             (file+olp "~/Dropbox/org/work.org" "Meetings") "* %? \nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n:PROPERTIES:\n:CATEGORY: MEETINGS\n:CREATED: %U\n:END:")
+            ("t" "Work Training's" entry
+             (file+olp "~/Dropbox/org/work.org" "Training's") "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n:PROPERTIES:\n:CATEGORY: TRAINING'S\n:CREATED: %U\n:END:")
+            ("S" "Stuff TODO" entry
+             (file+olp "~/Dropbox/org/stuff.org" "Tasks") "* TODO %? \n:PROPERTIES:\n:CATEGORY: TASKS\n:CREATED: %U\n:END:")
+            ("M" "Stuff Meetings" entry
+             (file+olp "~/Dropbox/org/stuff.org" "Meetings") "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n:PROPERTIES:\n:CATEGORY: MEETINGS\n:CREATED: %U\n:END:")
+            ("T" "Stuff Training's" entry
+             (file+olp "~/Dropbox/org/stuff.org" "Training's") "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n:PROPERTIES:\n:CATEGORY: TRAINING'S\n:CREATED: %U\n:END:")))
+
+    ;; configure the external apps to open files
+    (add-to-list (quote org-file-apps)
+                 (quote ("\\.pdf\\'" lambda (file link) (org-pdfview-open link))))
+
+    ;; protect hidden trees for being inadvertily edited (do not work with evil)
+    (setq-default org-catch-invisible-edits  'error
+                  org-ctrl-k-protect-subtree 'error)
+
+    ;; limit images width
+    (setq org-image-actual-width nil)
+
+    ;; :::::: Org-Babel ::::::
+    ;; languages supported
+    (require 'ox)
+    (org-babel-do-load-languages
+     (quote org-babel-load-languages)
+     (quote ((emacs-lisp . t)
+             (org . t))))
+    (setq org-babel-python-command "python")
+
+    (defun conf:org-confirm-babel-evaluate (lang body)
+      (not (member lang '("emacs-lisp" "python" "sh"))))
+
+    (setq org-confirm-babel-evaluate 'conf:org-confirm-babel-evaluate)
+
+    (defalias 'org-babel-execute:elisp 'org-babel-execute:emacs-lisp)
+
+    ;; refresh images after execution
+    (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)))
+
+(leaf ob-sql
+  :leaf-defer nil
+  :straight org-plus-contrib
+  :commands (org-babel-execute:sql))
+
+(leaf ob-python
+  :leaf-defer nil
+  :straight org-plus-contrib
+  :commands (org-babel-execute:python))
+
+(leaf ob-shell
+  :leaf-defer nil
+  :straight org-plus-contrib
+  :commands (org-babel-execute:sh
+             org-babel-expand-body:sh
+             org-babel-execute:bash
+             org-babel-expand-body:bash))
+
+(leaf org-bullets
+  :straight t
+  :hook (org-mode-hook . org-bullets-mode))
+
+(leaf ob-async :straight t)
+(leaf ob-translate :straight t)
+(leaf org-re-reveal :straight t)
+(leaf htmlize :straight t)
+(leaf default-text-scale :straight t :require t)
+(leaf hide-mode-line :straight t :require t)
+
+(leaf org-super-agenda
+  :straight t
+  :config
+  (setq org-super-agenda-groups '((:name "Today"
+                                         :time-grid t
+                                         :scheduled today)
+                                  (:name "Due today"
+                                         :deadline today)
+                                  (:name "Important"
+                                         :priority "A")
+                                  (:name "Overdue"
+                                         :deadline past)
+                                  (:name "Due soon"
+                                         :deadline future)
+                                  (:name "Big Outcomes"
+                                         :tag "bo")))
+  (org-super-agenda-mode))
+
+(leaf org-sidebar
+  :straight t
+  :setq (org-sidebar-side . 'left)
+  :config
+  (defun conf:org-today-sidebar ()
+    "Show my Org Today Sidebar."
+    (interactive)
+    (org-sidebar
+     :sidebars (make-org-sidebar
+                :name "Today"
+                :description "Today items"
+                :items (org-ql (org-agenda-files)
+                         (and (not (done))
+                              (or (deadline auto)
+                                  (scheduled :to today)))
+                         :action element-with-markers)
+                :super-groups '((:time-grid t)
+                                (:name "Overdue" :scheduled past :deadline past)
+                                (:name "Due today" :scheduled today :deadline today)
+                                (:tag "bills")
+                                (:priority "A")
+                                (:name "Non-tasks"
+                                       :todo nil))))))
+    #+END_SRC
+    
+**** Org-Noter
+**** Org-Ref
+#+BEGIN_SRC emacs-lisp
+(leaf org-ref
+  :doc ""
+  :straight t
+  :config
+  (setq org-ref-ivy-cite-completion 1
+        org-ref-completion-library 'org-ref-ivy-cite)
+  (require 'org-ref)
+  (setq reftex-default-bibliography "~/Dropbox/org/biblio/ref.bib"
+        org-ref-default-bibliography '("~/Dropbox/org/biblio/ref.bib")
+        org-ref-bibliography-notes "~/Dropbox/org/biblio/notes.org"
+        org-ref-pdf-directory "~/Dropbox/org/biblio/papers/")
+  (setq org-ref-bibtex-hydra-key-binding "\C-cj"))
+#+END_SRC
+
+**** GkRoam
+#+BEGIN_SRC emacs-lisp
+(leaf gkroam
+  :doc ""
+  :straight (gkroam :type git
+                    :host github
+                    :repo "Kinneyzhang/gkroam"
+                    :branch "develop")
+  :hook (after-init-hook . gkroam-mode)
+  :init
+  (setq gkroam-root-dir "~/Dropbox/org/gkroam/")
+  (setq gkroam-prettify-page-p t
+        gkroam-show-brackets-p t
+        gkroam-use-default-filename t
+        gkroam-window-margin 0)
+  :bind
+  (:gkroam-mode-map
+   (("C-c r I" . gkroam-index)
+    ("C-c r d" . gkroam-daily)
+    ("C-c r D" . gkroam-delete)
+    ("C-c r f" . gkroam-find)
+    ("C-c r i" . gkroam-insert)
+    ("C-c r n" . gkroam-dwim)
+    ("C-c r e" . gkroam-link-edit)
+    ("C-c r u" . gkroam-show-unlinked)
+    ("C-c r p" . gkroam-toggle-prettify)
+    ("C-c r t" . gkroam-toggle-brackets)
+    ("C-c r R" . gkroam-rebuild-caches)
+    ("C-c r g" . gkroam-update))))
+
+;; (rx/leader-keys
+;;   "r" '(:ignore t :which-key "Notes")
+;;   "rI" 'gkroam-index
+;;   "rD" 'gkroam-delete
+;;   "rR" 'gkroam-rebuild-caches
+;;   "rd" 'gkroam-daily
+;;   "re" 'gkroam-link-edit
+;;   "rf" 'gkroam-find
+;;   "rg" 'gkroam-update
+;;   "ri" 'gkroam-insert
+;;   "rn" 'gkroam-dwim
+;;   "rp" 'gkroam-toggle-prettify
+;;   "rt" 'gkroam-toggle-brackets
+;;   "ru" 'gkroam-show-unlinked)
+#+END_SRC
+
+*** Parenthesis
+#+BEGIN_SRC emacs-lisp
+(electric-pair-mode 1)
+
+(leaf paren
+  :straight t
+  :init (show-paren-mode)
+  :config
+  (set-face-background 'show-paren-match (face-background 'default))
+  (set-face-foreground 'show-paren-match "#def")
+  (set-face-attribute 'show-paren-match nil :weight 'extra-bold))
+
+(leaf smartparens-config
+  :straight smartparens
+  :commands (smartparens-mode smartparens-strict-mode)
+  :bind (:smartparens-strict-mode-map
+         ("C-}" . sp-forward-slurp-sexp)
+         ("M-s" . sp-backward-unwrap-sexp)
+         ("C-c s [" . sp-select-next-thing)
+         ("C-c s ]" . sp-select-next-thing-exchange)))
+
+(leaf rainbow-delimiters
+  :straight t
+  :hook (prog-mode-hook . rainbow-delimiters-mode))
+#+END_SRC
+
+*** Projectile
+#+BEGIN_SRC emacs-lisp
+(leaf projectile
+  :straight t
+  :blackout projectile-mode
+  :config
+  (setq projectile-known-projects-file (concat conf:cache-dir "projectile-bookmarks.eld")
+        projectile-cache-file (concat conf:cache-dir "projectile.cache")
+        projectile-file-exists-remote-cache-expire (* 10 60)
+        projectile-indexing-method 'alien
+        projectile-enable-caching t
+        projectile-completion-system 'ivy)
+  (projectile-global-mode))
+
+(leaf counsel-projectile
+  :straight t
+  :bind* ("C-x b" . conf:switch-to-project-buffer-if-in-project)
+  :bind (("C-x r R" . counsel-projectile-rg)
+        ("<C-tab>" . counsel-projectile-switch-project))
+  :config
+  (defun conf:switch-to-project-buffer-if-in-project (arg)
+    "Custom switch to buffer.
+      With universal argument ARG or when not in project, rely on
+      `ivy-switch-buffer'.
+      Otherwise, use `counsel-projectile-switch-to-buffer'."
+    (interactive "P")
+    (if (or arg
+            (not (projectile-project-p)))
+        (ivy-switch-buffer)
+      (counsel-projectile-switch-to-buffer)))
+  :hook ((text-mode-hook . counsel-projectile-mode)
+         (prog-mode-hook . counsel-projectile-mode)))
+#+END_SRC
+
+*** Languages
+**** Clojure
+#+BEGIN_SRC emacs-lisp
+(leaf clojure
+  :doc ""
+  :config
+  (leaf cider
+    :doc ""
+    :url ""
+    :straight t
+    :config
+    (setq cider-allow-jack-in-without-project t
+          cider-repl-buffer-size-limit 100000
+          cider-repl-tab-command #'indent-for-tab-command
+          cider-repl-pop-to-buffer-on-connect 'display-only
+          cider-repl-result-prefix ";; => "
+          cider-repl-require-ns-on-set t
+          cider-repl-use-pretty-printing t
+          cider--print-buffer-size (* 8 1024)
+          cider-print-quota (* 1024 1024))))
+#+END_SRC
+
+**** Common Lisp
+**** Nix
+#+BEGIN_SRC emacs-lisp
+  (leaf nix-mode
+    :doc "NixOS DSL"
+    :straight t
+    :mode ("\\.nix\\'" . nix-mode))
+#+END_SRC
+
+**** Perl
+**** Python
+**** R
+#+BEGIN_SRC emacs-lisp
+  (leaf ess
+    :doc ""
+    :straight t
+    :config
+    (load "ess-autoloads")
+    (leaf ess-R-data-view
+      :doc ""
+      :straight t))
+#+END_SRC
+
+**** Scheme
+**** Web
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
+
+*** FileTypes
+**** CSV
+#+BEGIN_SRC emacs-lisp
+(leaf csv-mode
+  :straight t
+  :leaf-defer nil
+  :mode ("\\.[Cc][Ss][Vv]\\'" . csv-mode)
+  :config (setq csv-separators '("," ";" "|" " ")))
+#+END_SRC
+
+**** SQL
+#+BEGIN_SRC emacs-lisp
+(leaf emacsql-sqlite :straight t)
+(leaf sqlup-mode
+  :straight t
+  :bind ("C-c u" . sqlup-capitalize-keywords-in-region)
+  :hook ((sql-mode-hook . sqlup-mode)
+         (sql-interactive-mode-hook . sqlup-mode)))
+
+(leaf sql-indent
+  :straight t
+  :after sql
+  :bind (sql-mode-map
+         ("C-c \\" . sql-indent-buffer))
+  :hook (sql-mode-hook . sqlind-minor-mode))
+#+END_SRC
+
+**** TeX
+#+BEGIN_SRC emacs-lisp
+(leaf tex
+  :straight auctex
+  :leaf-defer nil
+  :bind ("C-c c" . TeX-clean)
+  :init
+  (progn
+    (require 'smartparens-latex)
+    (add-hook 'TeX-mode-hook
+              (lambda ()
+                (outline-minor-mode t)
+                (flyspell-mode t)
+                (TeX-PDF-mode t)
+                (TeX-fold-mode t)
+                (switch-dictionary)))
+    (add-hook 'LaTeX-mode-hook
+              (lambda ()
+                (LaTeX-math-mode t)
+                (reftex-mode t)))
+    (setq TeX-auto-save t
+          TeX-parse-self t
+          LaTeX-syntactic-comment t
+          TeX-save-query nil
+          TeX-PDF-mode t
+          TeX-auto-untabify t)
+    (setq-default TeX-engine 'xetex))
+  :config
+  (add-hook 'TeX-mode-hook 'turn-on-auto-fill)
+  (add-hook 'LaTeX-mode-hook 'turn-on-auto-fill)
+
+  ;; Use pdf-tools to open PDF files
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+        TeX-source-correlate-start-server t)
+
+  ;; Update PDF buffers after successful LaTeX runs
+  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
+
+                                        ;(setq TeX-view-program-list '(("zathura" "zathura %o"))
+                                        ;      TeX-view-program-selection '((output-pdf "zathura")))
+
+  ;; set XeTeX mode in TeX/LaTeX
+  (add-hook 'LaTeX-mode-hook
+            (lambda () (push
+                   '("cTeX" "%(ctex_bin) %t " TeX-run-TeX nil t
+                     :help "Compilation with custom script") TeX-command-list)
+              (add-to-list 'TeX-expand-list
+                           '("%(ctex_bin)" (lambda ()
+                                             (concat "~/.bin/" "ctex" ))))
+              (setq TeX-command-default "cTeX"
+                    TeX-save-query nil
+                    TeX-show-compilation t))))
+
+(leaf cdlatex
+  :straight t
+  :hook (LaTeX-mode-hook . turn-on-cdlatex))
+
+(leaf reftex
+  :straight t
+  :commands turn-on-reftex
+  :init
+  (progn
+    (setq reftex-plug-into-AUCTeX t)))
+
+(leaf bibtex
+  :straight t
+  :init
+  (progn
+    (setq bibtex-align-at-equal-sign t)
+    (add-hook 'bibtex-mode-hook
+              (lambda ()
+                (set-fill-column 120)))))
+
+(leaf company-auctex
+  :straight t
+  :config
+  (defun conf:TeX-mode-hook ()
+    (company-auctex-init))
+  (add-hook 'LaTeX-mode-hook 'conf:TeX-mode-hook)
+  (add-hook 'TeX-mode-hook 'conf:TeX-mode-hook))
+#+END_SRC
+
+**** XML
+#+BEGIN_SRC emacs-lisp
+;; (defun nxml-template ()
+;;   (interactive)
+;;   (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n\n"))
+
+;; (add-hook 'nxml-mode-hook
+;;           '(lambda () (when (empty-buffer?) (nxml-template))))
+
+;; (reformatter-define xml-format
+;;   :program "xmlformat"
+;;   :group 'xml)
+
+;;   ;; (define-key nxml-mode-map (kbd "C-c C-f") 'xml-format-buffer)
+
+;; (leaf nxml-mode
+;;   :mode (("\\.plist\\'" . nxml-mode)
+;;          ("\\.rss\\'"   . nxml-mode)
+;;          ("\\.svg\\'"   . nxml-mode)
+;;          ("\\.xml\\'"   . nxml-mode)
+;;          ("\\.xsd\\'"   . nxml-mode)
+;;          ("\\.xslt\\'"  . nxml-mode)
+;;          ("\\.pom$"     . nxml-mode))
+;;   :bind (nxml-mode-map
+;;          ("C-x f" . pretty-print-xml-buffer))
+;;   :config
+;;   (setq nxml-slash-auto-complete-flag t
+;;         nxml-auto-insert-xml-declaration-flag t)
+;;   (add-to-list 'magic-mode-alist '("<\\?xml" . nxml-mode))
+;;   (mapc
+;;    (lambda (pair)
+;;      (if (or (eq (cdr pair) 'xml-mode)
+;;              (eq (cdr pair) 'sgml-mode))
+;;          (setcdr pair 'nxml-mode)))
+;;    auto-mode-alist)
+
+;;   ;; https://gist.github.com/DinoChiesa/5489021
+;;   (defun pretty-print-xml-region (begin end)
+;;     "Pretty format XML markup in region. You need to have nxml-mode
+;;       http://www.emacswiki.org/cgi-bin/wiki/NxmlMode installed to do
+;;       this. The function inserts linebreaks to separate tags that have
+;;       nothing but whitespace between them. It then indents the markup
+;;       by using nxml's indentation rules."
+;;     (interactive "r")
+;;     (save-excursion
+;;       (nxml-mode)
+;;       ;; split <foo><bar> or </foo><bar>, but not <foo></foo>
+;;       (goto-char begin)
+;;       (while (search-forward-regexp ">[ \t]*<[^/]" end t)
+;;         (backward-char 2) (insert "\n") (incf end))
+;;       ;; split <foo/></foo> and </foo></foo>
+;;       (goto-char begin)
+;;       (while (search-forward-regexp "<.*?/.*?>[ \t]*<" end t)
+;;         (backward-char) (insert "\n") (incf end))
+;;       ;; put xml namespace decls on newline
+;;       (goto-char begin)
+;;       (while (search-forward-regexp "\\(<\\([a-zA-Z][-:A-Za-z0-9]*\\)\\|['\"]\\) \\(xmlns[=:]\\)" end t)
+;;         (goto-char (match-end 0))
+;;         (backward-char 6) (insert "\n") (incf end))
+;;       (indent-region begin end nil)
+;;       (normal-mode))
+;;     (message "All indented!"))
+
+;;   (defun pretty-print-xml-buffer ()
+;;     "pretty print the XML in a buffer."
+;;     (interactive)
+;;     (pretty-print-xml-region (point-min) (point-max))))
+#+END_SRC
+
+**** YAML
+#+BEGIN_SRC emacs-lisp
+(leaf yaml-mode :straight t)
+#+END_SRC
+
+** Readers
+*** PDFview
+#+BEGIN_SRC emacs-lisp
+(leaf pdf-tools
+  :straight t
+  :bind (:pdf-view-mode-map
+         ("<s-spc>" .  pdf-view-scroll-down-or-next-page)
+         ("g"  . pdf-view-first-page)
+         ("G"  . pdf-view-last-page)
+         ("l"  . image-forward-hscroll)
+         ("h"  . image-backward-hscroll)
+         ("j"  . pdf-view-next-line-or-next-page)
+         ("k"  . pdf-view-previous-line-or-previous-page)
+         ("e"  . pdf-view-goto-page)
+         ("t"  . pdf-view-goto-label)
+         ("u"  . pdf-view-revert-buffer)
+         ("al" . pdf-annot-list-annotations)
+         ("ad" . pdf-annot-delete)
+         ("aa" . pdf-annot-attachment-dired)
+         ("am" . pdf-annot-add-markup-annotation)
+         ("at" . pdf-annot-add-text-annotation)
+         ("y"  . pdf-view-kill-ring-save)
+         ("i"  . pdf-misc-display-metadata)
+         ("s"  . pdf-occur)
+         ("b"  . pdf-view-set-slice-from-bounding-box)
+         ("r"  . pdf-view-reset-slice))
+  :init
+  (pdf-tools-install t t)
+  :config
+  (setq ;; pdf-misc-print-programm "/usr/bin/gtklp"
+        ;; pdf-misc-print-programm-args (quote ("-o media=A4" "-o fitplot"))
+        pdf-view-display-size 'fit-page
+        ;; pdf-view-use-imagemagick t
+        pdf-view-midnight-colors '("white smoke" . "gray5")))
+
+(leaf org-pdfview
+  :straight t
+  :require t)
+#+END_SRC
+
+*** ePUB
+#+BEGIN_SRC emacs-lisp
+(leaf nov
+  :doc "Nov.el is an ePUB Reader."
+  :straight t
+  :mode ("\\.epub\\'" . nov-mode)
+  :config
+  ;;(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+  (setq nov-text-width 72
+        visual-fill-column-center-text t))
+#+END_SRC
+
+* Personal Stuffs
+** ScreenShot
+#+BEGIN_SRC emacs-lisp
+(leaf rx/screenshot
+  :doc ""
+  :config
+  (defun rx/take-screenshot-region ()
+    "Take a screenshot into a time stamped unique-named file in the
+  same directory as the org-buffer and insert a link to this file."
+    (interactive)
+    (let ((filename
+           (concat
+            (make-temp-name
+             (concat (buffer-file-name)
+                     "_"
+                     (format-time-string "%Y%m%d_%H%M%S_")) ) ".png")))
+      (call-process "scrot" nil nil nil "-s" filename)
+      (insert (concat "[[" filename "]]"))
+      (org-display-inline-images)))
+  (global-set-key (kbd "<f12>") 'rx/take-screenshot-region))
+#+END_SRC
+
+* Footer
+    #+BEGIN_SRC emacs-lisp
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; config-leaf.el ends here.
+    #+END_SRC
+    
+    
