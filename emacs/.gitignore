@@ -1,8 +1,0 @@
-# Ignore erverything
-*
-
-# But these...
-!early-init.el
-!init.el
-!snippets/
-!elisp/*
