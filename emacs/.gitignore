@@ -2,7 +2,7 @@
 *
 
 # But these...
-!elisp/
 !early-init.el
 !init.el
 !snippets/
+!elisp/*
