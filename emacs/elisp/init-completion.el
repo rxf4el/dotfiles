@@ -79,7 +79,7 @@
 ;;   :init
 ;;   (selectrum-mode 1))
 ;;
-;; (use-package prescient)
+(use-package prescient)
 ;; (use-package selectrum-prescient
 ;;   :init
 ;;   (selectrum-prescient-mode 1))
