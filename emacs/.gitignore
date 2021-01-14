@@ -2,8 +2,7 @@
 *
 
 # But these...
-!config-leaf.org
+!elisp/
 !early-init.el
 !init.el
 !snippets/
-
