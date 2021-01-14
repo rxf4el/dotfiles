@@ -9,7 +9,7 @@
 (require 'storybook-theme)
 (require 'printed-theme)
 
-(let ((margin 24))                       ; default 24
+(let ((margin 24))                       ; default 0
   (add-to-list 'default-frame-alist (cons 'internal-border-width margin))
   (set-frame-parameter nil 'internal-border-width margin))
 
