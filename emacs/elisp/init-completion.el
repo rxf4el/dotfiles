@@ -90,12 +90,13 @@
   (consult-line-point-placement 'match-end))
 
 (use-package selectrum-prescient
-  ;; :custom
-  ;; (prescient-filter-method '(literal initialism regexp))
+  :init (selectrum-mode)
   :config
-  (selectrum-mode 1)
   (selectrum-prescient-mode 1)
-  (prescient-persist-mode 1))
+  (prescient-persist-mode 1)
+  (setq prescient-history-length 100
+        prescient-sort-length-enable nil
+        prescient-filter-method '(literal regexp initialism)))
 
 (use-package marginalia
   :straight (marginalia :type git :host github :repo "minad/marginalia" :branch "main")

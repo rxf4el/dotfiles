@@ -40,7 +40,7 @@ let
   nixTools = with pkgs; [
     nixpkgs-fmt nix-update rnix-lsp
   ];
-  
+
 in
 
 {
@@ -52,7 +52,7 @@ in
   #     url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz; })
   #   )
   # ];
-  
+
   # Home Manager needs a bit of information about you and the
   # paths it should manage.
   home = { username = "rxf4el";
@@ -74,23 +74,25 @@ in
       };
     };
   };
-  
+
   programs = {
     emacs = { enable = true;
               # package = pkgs.emacsGcc;
               # extraPackages = (epkgs: [ epkgs.vterm ] );
             };
-    
+
     firefox = { enable = true; };
 
     git = { enable = true;
             userName = "rxf4el";
             userEmail = "rxf4e1@tuta.io";
           };
-    
+
     fzf = { enable = true;
             enableBashIntegration = true;
             defaultOptions = [ "--color=bg+:24" ];
           };
   };
+
+  # services = { emacs.enable = true; };
 }

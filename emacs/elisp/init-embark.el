@@ -24,7 +24,6 @@
           #'which-key--hide-popup-ignore-command)
         embark-become-indicator embark-action-indicator))
 
-
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
   :ensure t

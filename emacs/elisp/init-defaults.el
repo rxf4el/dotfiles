@@ -53,7 +53,7 @@
  tab-width 4
  ;; Don't show cursor in non selected window.
  cursor-in-non-selected-windows nil
- comment-empty-lines t
+ comment-empty-lines nil                ;t
  visible-cursor t
  ;; Improve long line display performance
  bidi-inhibit-bpa t
@@ -82,6 +82,7 @@
 (add-hook 'prog-mode-hook 'subword-mode)
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
+;;; unset annoying freezes whe C-z is pressed
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
 
@@ -107,6 +108,7 @@
 (run-with-idle-timer 7 t #'garbage-collect)
 (add-hook 'focus-out-hook #'garbage-collect)
 
+;;; show parens
 (show-paren-mode 1)
 
 (provide 'init-defaults)

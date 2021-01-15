@@ -11,14 +11,14 @@ otherwise will insert a colon."
     (insert ":")))
 
 (use-package paredit
-             :straight
-             (paredit :type git
-                      :host github
-                      :repo "emacsmirror/paredit")
-             :bind
-             (:map paredit-mode-map
-		               (";" . '+lisp-semicolon))
-             :hook
-             (emacs-lisp-mode . paredit-mode))
+  :straight
+  (paredit :type git
+           :host github
+           :repo "emacsmirror/paredit")
+  :bind
+  (:map paredit-mode-map
+		(";" . '+lisp-semicolon))
+  :hook
+  (emacs-lisp-mode . paredit-mode))
 
 (provide 'init-lisp)

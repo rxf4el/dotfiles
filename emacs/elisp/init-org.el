@@ -40,6 +40,7 @@
    '((python . t)
      (emacs-lisp . t)
      (clojure . t)))
+  (setq org-babel-clojure-backend 'cider)
   (setq org-confirm-babel-evaluate nil)
   (add-hook 'org-babel-after-execute-hook '+org-redisplay-inline-images))
 
@@ -49,6 +50,8 @@
   (:map org-mode-map
         ("<f8>" . org-latex-auto-toggle))
   :config
+  (require 'ob-clojure)
+  (require 'cider)
   (require 'org-tempo)
   (+org-babel-setup))
 

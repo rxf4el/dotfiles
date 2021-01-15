@@ -21,4 +21,8 @@ alias cl="clear"
 alias cdd="cd /media/data/"
 alias cat="bat"
 alias em="emacs"
-alias ee="emacs -nw"
+alias ee="emacsclient -t $@"
+
+###############################
+# ZSH OPTIONS
+###############################
