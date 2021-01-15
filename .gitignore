@@ -6,3 +6,5 @@
 /emacs/theme-readtheorg.setup
 /emacs/transient/
 /emacs/var/
+/emacs/.cache/
+/emacs/tramp
