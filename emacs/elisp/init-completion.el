@@ -65,49 +65,75 @@
              (company-global-modes '(not dired-mode dired-sidebar-mode))
              (company-tooltip-margin 0))
 
-(use-package ivy
-             :init
-             (ivy-mode 1)
-             :custom
-             (ivy-use-selectable-prompt t))
-
-(use-package counsel
-             :init
-             (counsel-mode 1))
-
-;; (use-package selectrum
-;;   :init
-;;   (selectrum-mode 1))
+;; (use-package ivy
+;;              :init
+;;              (ivy-mode 1)
+;;              :custom
+;;              (ivy-use-selectable-prompt t))
 ;;
-;; (use-package prescient)
-;; (use-package selectrum-prescient
-;;   :init
-;;   (selectrum-prescient-mode 1))
-;; (use-package company-prescient
-;;   :init
-;;   (company-prescient-mode 1))
+;; (use-package counsel
+;;              :init
+;;              (counsel-mode 1))
 
-(use-package ivy-bibtex
+
+(use-package consult
+  :straight (consult :type git :host github :repo "minad/consult" :branch "main")
+  :init
+  (fset 'multi-occur #'consult-multi-occur)
+  (setq register-preview-delay 0
+        register-preview-function #'consult-register-preview)
+  :bind
+  ("C-x b" . consult-buffer)
+  ("M-y" . consult-yank-pop)
+  ("C-," . consult-line)
+  :custom
+  (consult-line-point-placement 'match-end))
+
+(use-package selectrum-prescient
   :config
-  (setq bibtex-completion-notes-path "~/Dropbox/org/biblio/"
-          bibtex-completion-bibliography (list "~/Dropbox/org/biblio/ref.bib")
-          bibtex-completion-library-path "~/Dropbox/org/biblio/papers/"
-          bibtex-completion-pdf-field "File"
-          bibtex-completion-notes-template-multiple-files
-          (concat
-           "#+TITLE: ${title}\n"
-           ;; "#+ROAM_KEY: cite:${=key=}\n"
-           "* TODO Notes\n"
-           ":PROPERTIES:\n"
-           ":CUSTOM_ID: ${=key=}\n"
-           ;; ":NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n"
-           ":AUTHOR: ${author-abbrev}\n"
-           ":JOURNAL: ${journaltitle}\n"
-           ":DATE: ${date}\n"
-           ":YEAR: ${year}\n"
-           ":DOI: ${doi}\n"
-           ":URL: ${url}\n"
-           ":END: ${end}\n\n")))
+  (selectrum-mode 1)
+  (selectrum-prescient-mode 1)
+  (prescient-persist-mode 1))
+
+(use-package marginalia
+  :straight (marginalia :type git :host github :repo "minad/marginalia" :branch "main")
+  :config
+  (marginalia-mode)
+  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light)))
+
+(use-package company-prescient
+  :init
+  (company-prescient-mode 1))
+
+(use-package helm
+  :custom (helm-bibtex-full-frame nil)
+  :config
+  (setq helm-autoresize-max-height 0)
+  (setq helm-autoresize-min-height 30)
+  (helm-autoresize-mode 1))
+
+
+;; (use-package ivy-bibtex
+;;   :config
+;;   (setq bibtex-completion-notes-path "~/Dropbox/org/biblio/"
+;;           bibtex-completion-bibliography (list "~/Dropbox/org/biblio/ref.bib")
+;;           bibtex-completion-library-path "~/Dropbox/org/biblio/papers/"
+;;           bibtex-completion-pdf-field "File"
+;;           bibtex-completion-notes-template-multiple-files
+;;           (concat
+;;            "#+TITLE: ${title}\n"
+;;            ;; "#+ROAM_KEY: cite:${=key=}\n"
+;;            "* TODO Notes\n"
+;;            ":PROPERTIES:\n"
+;;            ":CUSTOM_ID: ${=key=}\n"
+;;            ;; ":NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n"
+;;            ":AUTHOR: ${author-abbrev}\n"
+;;            ":JOURNAL: ${journaltitle}\n"
+;;            ":DATE: ${date}\n"
+;;            ":YEAR: ${year}\n"
+;;            ":DOI: ${doi}\n"
+;;            ":URL: ${url}\n"
+;;            ":END: ${end}\n\n")))
 
 (use-package deadgrep
              :bind

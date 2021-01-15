@@ -82,6 +82,8 @@
 (add-hook 'prog-mode-hook 'subword-mode)
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
+(global-unset-key (kbd "C-z"))
+(global-unset-key (kbd "C-x C-z"))
 
 (scroll-bar-mode -1)
 (tool-bar-mode -1)

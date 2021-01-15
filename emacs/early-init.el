@@ -1,6 +1,8 @@
 (setq gc-cons-threshold most-positive-fixnum
 	    gc-cons-percentage 0.6
-      file-name-handler-alist-original file-name-handler-alist)
+        file-name-handler-alist-original file-name-handler-alist)
+
+(setq frame-inhibit-implied-resize t)
 
 (add-hook 'after-init-hook
 		      (lambda ()

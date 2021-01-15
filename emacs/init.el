@@ -8,6 +8,7 @@
 (require 'init-clojure)
 (require 'init-hippie-expand)
 ;; (require 'init-python)
+;; (require 'init-embark)
 (require 'init-scrolling)
 (require 'init-markdown)
 (require 'init-git)

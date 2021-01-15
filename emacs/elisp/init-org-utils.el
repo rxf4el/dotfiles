@@ -1,7 +1,7 @@
 ;; Org-Ref
 (use-package org-ref
-  :custom ((org-ref-ivy-cite-completion t)
-           (org-ref-completion-library 'org-ref-ivy-cite))
+  ;; :custom ((org-ref-ivy-cite-completion t)
+  ;;          (org-ref-completion-library 'org-ref-ivy-cite))
   :config
   (require 'org-ref)
   (require 'org-ref-pdf)
