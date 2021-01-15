@@ -77,7 +77,7 @@
 
 
 (use-package consult
-  :straight (consult :type git :host github :repo "minad/consult" :branch "main")
+  ;; :straight (consult :type git :host github :repo "minad/consult" :branch "main")
   :init
   (fset 'multi-occur #'consult-multi-occur)
   (setq register-preview-delay 0
@@ -90,6 +90,8 @@
   (consult-line-point-placement 'match-end))
 
 (use-package selectrum-prescient
+  ;; :custom
+  ;; (prescient-filter-method '(literal initialism regexp))
   :config
   (selectrum-mode 1)
   (selectrum-prescient-mode 1)
