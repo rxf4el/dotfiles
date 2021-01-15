@@ -9,6 +9,7 @@
 (require 'init-hippie-expand)
 ;; (require 'init-python)
 ;; (require 'init-embark)
+(require 'init-nix)
 (require 'init-scrolling)
 (require 'init-markdown)
 (require 'init-git)
@@ -27,4 +28,3 @@
 (require 'init-which-key)
 (require 'init-readers)
 ;; (require 'init-server)
-(put 'dired-find-alternate-file 'disabled nil)
