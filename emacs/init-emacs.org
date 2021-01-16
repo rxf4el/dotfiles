@@ -55,7 +55,11 @@
 *** INFO
     #+BEGIN_SRC emacs-lisp
       (leaf info
-            :doc "Personal Information")
+        :doc "Personal Information"
+        :custom
+        ((user-full-name    . "Rafael M. Marte")
+         (user-mail-address . "rxf4el@gmail.com")
+         (user-login-name   . "rxf4el")))
     #+END_SRC
 
 *** PATH(S)ET
@@ -63,10 +67,10 @@
       (leaf pathset
             :doc "Set PATHS"
             :config
-            (defvar my:user  (getenv "HOME"))
-            (defvar my:emacs (concat my:user "/.emacs.d"))
-            (defvar my:cache (concat my:emacs "/.local/cache"))
-            (defvar my:org   (concat my:user "/Dropbox/org")))
+            (defconst my:user  (getenv "HOME"))
+            (defconst my:emacs (concat my:user  "/.emacs.d"))
+            (defconst my:cache (concat my:emacs "/.local/cache"))
+            (defconst my:org   (concat my:user  "/Dropbox/org")))
     #+END_SRC
 
 *** OPENCONFIG
@@ -328,9 +332,25 @@
 
 **** MINIBUFFERS
 **** UNIQUIFY
+     #+begin_src emacs-lisp
+       (leaf uniquify
+           :doc ""
+           :config
+           (setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+           (setq uniquify-separator "/")
+           (setq uniquify-after-kill-buffer-p t) ; rename after killing uniquified
+           (setq uniquify-ignore-buffers-re "*[^*]+*") ; don't muck with special buffers
+           )
+     #+end_src
+
 *** DABBREV
 *** DIRED
 *** ELDOC
+    #+BEGIN_SRC emacs-lisp
+    (leaf eldoc
+      :doc "")
+    #+END_SRC
+
 *** FLYMAKE
     #+BEGIN_SRC emacs-lisp
       (with-eval-after-load 'flymake
@@ -366,6 +386,8 @@
                 try-expand-dabbrev-from-kill
                 try-complete-lisp-symbol-partially
                 try-complete-lisp-symbol)))
+      (global-set-key (kbd "s-'") 'hippie-expand)
+
     #+END_SRC
 
 *** ISEARCH
@@ -438,7 +460,15 @@
          (require 'ob-clojure)
          ;;(require 'cider)
          (require 'org-tempo)
-         (+org-babel-setup))
+         (+org-babel-setup)
+         (setq org-startup-indented t
+               org-src-tab-acts-natively t
+               org-hide-emphasis-markers t
+               ;;org-fontify-done-headline t
+               org-hide-leading-stars t
+               ;;org-pretty-entities t
+               ;;org-odd-levels-only t
+               org-src-window-setup 'split-window-below))
 
        ;;; Update latex options after change theme.
        (defun +org-update-latex-option-by-theme (theme)
@@ -558,7 +588,7 @@
 
 *** PAIRS
     #+BEGIN_SRC emacs-lisp
-      (electric-pair-mode 1)
+      (electric-pair-mode -1)
 
       (leaf paren
         :straight t
@@ -568,14 +598,28 @@
         (set-face-foreground 'show-paren-match "#def")
         (set-face-attribute 'show-paren-match nil :weight 'extra-bold))
 
-      (leaf smartparens-config
-        :straight smartparens
-        :commands (smartparens-mode smartparens-strict-mode)
-        :bind (smartparens-strict-mode-map
-               ("C-}" . sp-forward-slurp-sexp)
-               ("M-s" . sp-backward-unwrap-sexp)
-               ("C-c [" . sp-select-next-thing)
-               ("C-c ]" . sp-select-next-thing-exchange)))
+      (defun +lisp-semicolon ()
+        "Will insert a semicolon if we are at the beginning of the line,
+      otherwise will insert a colon."
+        (interactive)
+        (if (or (+in-comment-p)
+                (+in-string-p)
+                (equal (point) (line-beginning-position)))
+            (call-interactively #'self-insert-command)
+          (insert ":")))
+
+      (leaf paredit
+        :straight
+        (paredit :type git
+                 :host github
+                 :repo "emacsmirror/paredit")
+        :bind
+        (paredit-mode-map
+              (";" . +lisp-semicolon))
+        :hook
+        ((emacs-lisp-mode-hook . paredit-mode)
+         (clojure-mode-hook . paredit-mode)
+         (lisp-mode-hook . paredit-mode)))
 
       (leaf rainbow-delimiters
         :straight t
@@ -613,8 +657,46 @@
 
 ** 3(rd)PART
 *** AUTOINDENT
+    #+BEGIN_SRC emacs-lisp
+      (leaf aggressive-indent
+          :doc ""
+          :straight t
+          :config
+          (global-aggressive-indent-mode 1))
+    #+END_SRC
+
 *** AVY
+    #+BEGIN_SRC emacs-lisp
+      (leaf avy
+          :doc ""
+          :url "https://github.com/abo-abo/avy"
+          :straight t
+          :bind (("C-:" . avy-goto-char)
+                 ("C-*" . avy-resume)
+                 ("M-g M-g" . avy-goto-line))
+          :config
+          (leaf avy-zap
+            :doc ""
+            :bind ([remap zap-to-char] . avy-zap-to-char)))
+    #+END_SRC
+
 *** CODECOMPLETE
+**** YASNIPPET
+     #+BEGIN_SRC emacs-lisp
+       (defun +yas-expand-or-company-complete ()
+         (interactive)
+         (or (yas/expand)
+             (call-interactively #'company-indent-or-complete-common)))
+
+       (leaf yasnippet
+         :straight t
+         :config
+         (let ((inhibit-message t)) (yas-reload-all))
+         (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
+         :init
+         (yas-global-mode +1))
+     #+END_SRC
+
 **** COMPANY
      #+BEGIN_SRC emacs-lisp
        (leaf company
@@ -624,118 +706,139 @@
          :config
          (setq company-idle-delay 0
                company-show-numbers t
-               company-minimum-prefix-length 3
+               company-minimum-prefix-length 2
                company-tooltip-limit 5
-               company-tooltip-align-annotations t
                company-dabbrev-downcase nil
                company-dabbrev-ignore-case nil
                company-dabbrev-code-other-buffers t
+               company-tooltip-align-annotations t
                company-require-match 'never
-               company-global-modes '(not erc-mode
-                                          message-mode
-                                          help-mode
-                                          gud-mode
-                                          eshell-mode)
-               company-backend '((company-capf
-                                  company-keywords
-                                  company-files
-                                  company-yasnippet)
-                                 (company-abbrev company-dabbrev))
+               company-global-modes '(not erc-mode message-mode help-mode gud-mode eshell-mode)
+               company-backends '((company-capf
+                                     company-keywords
+                                     company-yasnippet)
+                                    (company-abbrev company-dabbrev))
                company-frontends '(company-pseudo-tooltip-frontend
-                                   company-echo-metadata-frontend)))
+                                     company-echo-metadata-frontend)))
+                     ;; (leaf company
+                     ;;   :straight t
+                     ;;   :init (global-company-mode +1)
+                     ;;   :commands (company-complete-common company-manual-begin company-grab-line)
+                     ;;   :config
+                     ;;   (setq company-idle-delay 0
+                     ;;         company-show-numbers t
+                     ;;         company-minimum-prefix-length 3
+                     ;;         company-tooltip-limit 5
+                     ;;         company-tooltip-align-annotations t
+                     ;;         company-dabbrev-downcase nil
+                     ;;         company-dabbrev-ignore-case nil
+                     ;;         company-dabbrev-code-other-buffers t
+                     ;;         company-require-match 'never
+                     ;;         company-global-modes '(not erc-mode
+                     ;;                                    message-mode
+                     ;;                                    help-mode
+                     ;;                                    gud-mode
+                     ;;                                    eshell-mode)
+                     ;;         company-backend '((company-capf
+                     ;;                            company-keywords
+                     ;;                            company-files
+                     ;;                            company-yasnippet)
+                     ;;                           (company-abbrev company-dabbrev))
+                     ;;         company-frontends '(company-pseudo-tooltip-frontend
+                     ;;                             company-echo-metadata-frontend)))
 
-       (leaf company-prescient
-         :straight t
-         :init
-         (company-prescient-mode 1))
+                     (leaf company-prescient
+                       :straight t
+                       :init
+                       (company-prescient-mode 1))
 
-       (leaf company-box
-         :straight t
-         :commands (company-box--get-color
-                    company-box--resolve-colors
-                    company-box--add-icon
-                    company-box--apply-color
-                    company-box--make-line
-                    company-box-icons--elisp)
-         :hook (company-mode-hook . company-box-mode)
-         :config
-         (setq company-box-backends-colors nil
-               company-box-show-single-candidate t
-               company-box-max-candidates 50
-               company-box-doc-delay 0.3)
-         ;; Support `company-common'
-         (defun my-company-box--make-line (candidate)
-           (-let* (((candidate annotation len-c len-a backend) candidate)
-                   (color (company-box--get-color backend))
-                   ((c-color a-color i-color s-color) (company-box--resolve-colors color))
-                   (icon-string (and company-box--with-icons-p (company-box--add-icon candidate)))
-                   (candidate-string (concat (propertize (or company-common "") 'face 'company-tooltip-common)
-                                             (substring (propertize candidate 'face 'company-box-candidate) (length company-common) nil)))
-                   (align-string (when annotation
-                                   (concat " " (and company-tooltip-align-annotations
-                                                    (propertize " " 'display `(space :align-to (- right-fringe ,(or len-a 0) 1)))))))
-                   (space company-box--space)
-                   (icon-p company-box-enable-icon)
-                   (annotation-string (and annotation (propertize annotation 'face 'company-box-annotation)))
-                   (line (concat (unless (or (and (= space 2) icon-p) (= space 0))
-                                   (propertize " " 'display `(space :width ,(if (or (= space 1) (not icon-p)) 1 0.75))))
-                                 (company-box--apply-color icon-string i-color)
-                                 (company-box--apply-color candidate-string c-color)
-                                 align-string
-                                 (company-box--apply-color annotation-string a-color)))
-                   (len (length line)))
-             (add-text-properties 0 len (list 'company-box--len (+ len-c len-a)
-                                              'company-box--color s-color)
-                                  line)
-             line))
-         (advice-add #'company-box--make-line :override #'my-company-box--make-line)
+                     (leaf company-box
+                       :straight t
+                       :commands (company-box--get-color
+                                  company-box--resolve-colors
+                                  company-box--add-icon
+                                  company-box--apply-color
+                                  company-box--make-line
+                                  company-box-icons--elisp)
+                       :hook (company-mode-hook . company-box-mode)
+                       :config
+                       (setq company-box-backends-colors nil
+                             company-box-show-single-candidate t
+                             company-box-max-candidates 50
+                             company-box-doc-delay 0.3)
+                       ;; Support `company-common'
+                       (defun my-company-box--make-line (candidate)
+                         (-let* (((candidate annotation len-c len-a backend) candidate)
+                                 (color (company-box--get-color backend))
+                                 ((c-color a-color i-color s-color) (company-box--resolve-colors color))
+                                 (icon-string (and company-box--with-icons-p (company-box--add-icon candidate)))
+                                 (candidate-string (concat (propertize (or company-common "") 'face 'company-tooltip-common)
+                                                           (substring (propertize candidate 'face 'company-box-candidate) (length company-common) nil)))
+                                 (align-string (when annotation
+                                                 (concat " " (and company-tooltip-align-annotations
+                                                                  (propertize " " 'display `(space :align-to (- right-fringe ,(or len-a 0) 1)))))))
+                                 (space company-box--space)
+                                 (icon-p company-box-enable-icon)
+                                 (annotation-string (and annotation (propertize annotation 'face 'company-box-annotation)))
+                                 (line (concat (unless (or (and (= space 2) icon-p) (= space 0))
+                                                 (propertize " " 'display `(space :width ,(if (or (= space 1) (not icon-p)) 1 0.75))))
+                                               (company-box--apply-color icon-string i-color)
+                                               (company-box--apply-color candidate-string c-color)
+                                               align-string
+                                               (company-box--apply-color annotation-string a-color)))
+                                 (len (length line)))
+                           (add-text-properties 0 len (list 'company-box--len (+ len-c len-a)
+                                                            'company-box--color s-color)
+                                                line)
+                           line))
+                       (advice-add #'company-box--make-line :override #'my-company-box--make-line)
 
-         ;; Prettify icons
-         (defun my-company-box-icons--elisp (candidate)
-           (when (derived-mode-p 'emacs-lisp-mode)
-             (let ((sym (intern candidate)))
-               (cond ((fboundp sym) 'Function)
-                     ((featurep sym) 'Module)
-                     ((facep sym) 'Color)
-                     ((boundp sym) 'Variable)
-                     ((symbolp sym) 'Text)
-                     (t . nil)))))
-         (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp)
+                       ;; Prettify icons
+                       (defun my-company-box-icons--elisp (candidate)
+                         (when (derived-mode-p 'emacs-lisp-mode)
+                           (let ((sym (intern candidate)))
+                             (cond ((fboundp sym) 'Function)
+                                   ((featurep sym) 'Module)
+                                   ((facep sym) 'Color)
+                                   ((boundp sym) 'Variable)
+                                   ((symbolp sym) 'Text)
+                                   (t . nil)))))
+                       (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp)
 
-         (when (and (display-graphic-p)
-                    (require 'all-the-icons nil t))
-           (declare-function all-the-icons-faicon 'all-the-icons)
-           (declare-function all-the-icons-material 'all-the-icons)
-           (declare-function all-the-icons-octicon 'all-the-icons)
-           (setq company-box-icons-all-the-icons
-                 `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.85 :v-adjust -0.2))
-                   (Text . ,(all-the-icons-faicon "text-width" :height 0.8 :v-adjust -0.05))
-                   (Method . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.05 :face 'all-the-icons-purple))
-                   (Function . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.05 :face 'all-the-icons-purple))
-                   (Constructor . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.05 :face 'all-the-icons-purple))
-                   (Field . ,(all-the-icons-octicon "tag" :height 0.8 :v-adjust 0 :face 'all-the-icons-lblue))
-                   (Variable . ,(all-the-icons-octicon "tag" :height 0.8 :v-adjust 0 :face 'all-the-icons-lblue))
-                   (Class . ,(all-the-icons-material "settings_input_component" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-orange))
-                   (Interface . ,(all-the-icons-material "share" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-lblue))
-                   (Module . ,(all-the-icons-material "view_module" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-lblue))
-                   (Property . ,(all-the-icons-faicon "wrench" :height 0.8 :v-adjust -0.05))
-                   (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.85 :v-adjust -0.2))
-                   (Value . ,(all-the-icons-material "format_align_right" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-lblue))
-                   (Enum . ,(all-the-icons-material "storage" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-orange))
-                   (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.85 :v-adjust -0.2))
-                   (Snippet . ,(all-the-icons-material "format_align_center" :height 0.85 :v-adjust -0.2))
-                   (Color . ,(all-the-icons-material "palette" :height 0.85 :v-adjust -0.2))
-                   (File . ,(all-the-icons-faicon "file-o" :height 0.85 :v-adjust -0.05))
-                   (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.85 :v-adjust -0.2))
-                   (Folder . ,(all-the-icons-faicon "folder-open" :height 0.85 :v-adjust -0.05))
-                   (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-lblue))
-                   (Constant . ,(all-the-icons-faicon "square-o" :height 0.85 :v-adjust -0.05))
-                   (Struct . ,(all-the-icons-material "settings_input_component" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-orange))
-                   (Event . ,(all-the-icons-faicon "bolt" :height 0.8 :v-adjust -0.05 :face 'all-the-icons-orange))
-                   (Operator . ,(all-the-icons-material "control_point" :height 0.85 :v-adjust -0.2))
-                   (TypeParameter . ,(all-the-icons-faicon "arrows" :height 0.8 :v-adjust -0.05))
-                   (Template . ,(all-the-icons-material "format_align_center" :height 0.85 :v-adjust -0.2)))
-                 company-box-icons-alist 'company-box-icons-all-the-icons)))
+                       (when (and (display-graphic-p)
+                                  (require 'all-the-icons nil t))
+                         (declare-function all-the-icons-faicon 'all-the-icons)
+                         (declare-function all-the-icons-material 'all-the-icons)
+                         (declare-function all-the-icons-octicon 'all-the-icons)
+                         (setq company-box-icons-all-the-icons
+                               `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.85 :v-adjust -0.2))
+                                 (Text . ,(all-the-icons-faicon "text-width" :height 0.8 :v-adjust -0.05))
+                                 (Method . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.05 :face 'all-the-icons-purple))
+                                 (Function . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.05 :face 'all-the-icons-purple))
+                                 (Constructor . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.05 :face 'all-the-icons-purple))
+                                 (Field . ,(all-the-icons-octicon "tag" :height 0.8 :v-adjust 0 :face 'all-the-icons-lblue))
+                                 (Variable . ,(all-the-icons-octicon "tag" :height 0.8 :v-adjust 0 :face 'all-the-icons-lblue))
+                                 (Class . ,(all-the-icons-material "settings_input_component" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-orange))
+                                 (Interface . ,(all-the-icons-material "share" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-lblue))
+                                 (Module . ,(all-the-icons-material "view_module" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-lblue))
+                                 (Property . ,(all-the-icons-faicon "wrench" :height 0.8 :v-adjust -0.05))
+                                 (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.85 :v-adjust -0.2))
+                                 (Value . ,(all-the-icons-material "format_align_right" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-lblue))
+                                 (Enum . ,(all-the-icons-material "storage" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-orange))
+                                 (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.85 :v-adjust -0.2))
+                                 (Snippet . ,(all-the-icons-material "format_align_center" :height 0.85 :v-adjust -0.2))
+                                 (Color . ,(all-the-icons-material "palette" :height 0.85 :v-adjust -0.2))
+                                 (File . ,(all-the-icons-faicon "file-o" :height 0.85 :v-adjust -0.05))
+                                 (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.85 :v-adjust -0.2))
+                                 (Folder . ,(all-the-icons-faicon "folder-open" :height 0.85 :v-adjust -0.05))
+                                 (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-lblue))
+                                 (Constant . ,(all-the-icons-faicon "square-o" :height 0.85 :v-adjust -0.05))
+                                 (Struct . ,(all-the-icons-material "settings_input_component" :height 0.85 :v-adjust -0.2 :face 'all-the-icons-orange))
+                                 (Event . ,(all-the-icons-faicon "bolt" :height 0.8 :v-adjust -0.05 :face 'all-the-icons-orange))
+                                 (Operator . ,(all-the-icons-material "control_point" :height 0.85 :v-adjust -0.2))
+                                 (TypeParameter . ,(all-the-icons-faicon "arrows" :height 0.8 :v-adjust -0.05))
+                                 (Template . ,(all-the-icons-material "format_align_center" :height 0.85 :v-adjust -0.2)))
+                               company-box-icons-alist 'company-box-icons-all-the-icons)))
 
      #+END_SRC
 
@@ -749,15 +852,6 @@
              :custom
              (eglot-stay-out-of '())
              (eglot-ignored-server-capabilites '(:documentHighlightProvider)))
-     #+END_SRC
-
-**** YASNIPPET
-     #+BEGIN_SRC emacs-lisp
-       (leaf yasnippet
-         :straight t
-         :init (yas-global-mode 1)
-         :config
-         (let ((inhibit-message t)) (yas-reload-all)))
      #+END_SRC
 
 *** MAGIT
@@ -1145,7 +1239,7 @@
                         :host github
                         :repo "Kinneyzhang/gkroam"
                         :branch "develop")
-             :hook (after-init . gkroam-mode)
+             :hook (after-init-hook . gkroam-mode)
              :init
              (setq gkroam-root-dir "~/Dropbox/org/gkroam/"
                    gkroam-prettify-page-p t
@@ -1154,18 +1248,18 @@
                    gkroam-window-margin 0)
              :bind
              (gkroam-mode-map
-              (("C-c r I" . gkroam-index)
-               ("C-c r d" . gkroam-daily)
-               ("C-c r D" . gkroam-delete)
-               ("C-c r f" . gkroam-find)
-               ("C-c r i" . gkroam-insert)
-               ("C-c r n" . gkroam-dwim)
-               ("C-c r e" . gkroam-link-edit)
-               ("C-c r u" . gkroam-show-unlinked)
-               ("C-c r p" . gkroam-toggle-prettify)
-               ("C-c r t" . gkroam-toggle-brackets)
-               ("C-c r R" . gkroam-rebuild-caches)
-               ("C-c r g" . gkroam-update))))
+              ("C-c r I" . gkroam-index)
+              ("C-c r d" . gkroam-daily)
+              ("C-c r D" . gkroam-delete)
+              ("C-c r f" . gkroam-find)
+              ("C-c r i" . gkroam-insert)
+              ("C-c r n" . gkroam-dwim)
+              ("C-c r e" . gkroam-link-edit)
+              ("C-c r u" . gkroam-show-unlinked)
+              ("C-c r p" . gkroam-toggle-prettify)
+              ("C-c r t" . gkroam-toggle-brackets)
+              ("C-c r R" . gkroam-rebuild-caches)
+              ("C-c r g" . gkroam-update)))
      #+END_SRC
 
 **** ORGREF
