@@ -15,5 +15,7 @@
 
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
+(require 'straight-x)
+
 
 (provide 'init-straight)

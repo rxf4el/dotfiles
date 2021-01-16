@@ -8,3 +8,5 @@
 /emacs/var/
 /emacs/.cache/
 /emacs/tramp
+/emacs/init-emacs.el
+/emacs/snippets/org/
