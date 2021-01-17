@@ -2,6 +2,8 @@
 	  gc-cons-percentage 0.6
       file-name-handler-alist-original file-name-handler-alist)
 
+(setq byte-compile-warnings '(cl-functions))
+
 (add-hook 'after-init-hook
 		  (lambda ()
             (setq gc-cons-threshold (* 1024 1024 1024)

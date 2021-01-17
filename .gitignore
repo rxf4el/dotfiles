@@ -16,3 +16,6 @@
 /emacs/request/
 /emacs/.org-id-locations
 /emacs/persist/
+/emacs/cache/
+/emacs/config.pdf
+/emacs/config.tex
