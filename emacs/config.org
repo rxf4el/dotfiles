@@ -207,29 +207,29 @@
                    :hook (emacs-startup . sml/setup))
 
       (use-package mini-modeline
-                   :straight t
-                   :config
-                   ;; (custom-set-faces ((mini-modeline-mode-line . '((t (:background "dim gray" :box nil :height 0.1))))
-                   ;;                    (mini-modeline-mode-line-inactive . '((t (:background "#333333" :box nil :height 0.1))))))
-                   (setq mini-modeline-truncate-p t
-                         mini-modeline- nil
-                         mini-modeline-r-format '("%e"
-                                                  mode-line-front-space
-                                                  mode-line-mule-info
-                                                  mode-line-client
-                                                  mode-line-modified
-                                                  mode-line-remote
-                                                  mode-line-frame-identification
-                                                  mode-line-buffer-identification
-                                                  (vc-mode vc-mode)
-                                                  ;;(meow-indicator)
-                                                  " "
-                                                  mode-line-position
-                                                  " "
-                                                  mode-line-modes
-                                                  mode-line-misc-info
-                                                  mode-line-end-spaces))
-                   :hook (emacs-startup . mini-modeline-mode))
+        :straight t
+        :custom-face (mini-modeline-mode-line ((t (:background "dim gray" :box nil :height 0.1))))
+                     (mini-modeline-mode-line-inactive ((t (:background "#333333" :box nil :height 0.1))))
+        :config
+        (setq mini-modeline-truncate-p t
+              mini-modeline- nil
+              mini-modeline-r-format '("%e"
+                                       mode-line-front-space
+                                       mode-line-mule-info
+                                       mode-line-client
+                                       mode-line-modified
+                                       mode-line-remote
+                                       mode-line-frame-identification
+                                       mode-line-buffer-identification
+                                       (vc-mode vc-mode)
+                                       ;;(meow-indicator)
+                                       " "
+                                       mode-line-position
+                                       " "
+                                       mode-line-modes
+                                       mode-line-misc-info
+                                       mode-line-end-spaces))
+        :hook (emacs-startup . mini-modeline-mode))
 
       (use-package rich-minority
                    :straight t
@@ -816,32 +816,55 @@
 **** R
      #+NAME:
      #+BEGIN_SRC emacs-lisp
-
+       (use-package ess-R-data-view
+         :straight t)
      #+END_SRC
 
 *** Modes
 **** CSV
      #+NAME:
      #+BEGIN_SRC emacs-lisp
-
+       (use-package csv-mode
+         :mode ("\\.[cC][sS][vV]\\'" . csv-mode))
      #+END_SRC
 
 **** MarkDown
      #+NAME:
      #+BEGIN_SRC emacs-lisp
-
+       (use-package markdown-mode
+         :custom
+         (markdown-fontify-code-blocks-natively t)
+         :init
+         (add-hook 'markdown-mode-hook 'markdown-toggle-markup-hiding))
      #+END_SRC
 
 **** Nix
      #+NAME:
      #+BEGIN_SRC emacs-lisp
-
+       (use-package nix-mode
+         :mode ("\\.nix\\'" . nix-mode))
      #+END_SRC
 
 **** Web
      #+NAME:
      #+BEGIN_SRC emacs-lisp
+       (use-package web-mode
+         :custom
+         (web-mode-markup-indent-offset 2)
+         (web-mode-code-indent-offset 2)
+         (web-mode-css-indent-offset 2))
 
+       (setq-default
+        js-indent-level 2
+        css-indent-offset 2)
+
+       (use-package emmet-mode
+         :hook
+         (web-mode . emmet-mode)
+         (html-mode . emmet-mode)
+         :bind
+         ((:map emmet-mode-keymap
+                ("M-e" . 'emmet-expand-line))))
      #+END_SRC
 
 ** Bioinformatics

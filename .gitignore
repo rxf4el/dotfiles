@@ -14,3 +14,5 @@
 /emacs/config.el
 /emacs/org-gcal/
 /emacs/request/
+/emacs/.org-id-locations
+/emacs/persist/
