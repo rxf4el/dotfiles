@@ -40,6 +40,12 @@
 ** Functions
 #+NAME:
 #+BEGIN_SRC emacs-lisp
+  (defmacro help/on-gnu/linux (statement &rest statements)
+    "Evaluate the enclosed body only when run on GNU/Linux"
+    `(when (eq system-type 'gnu/linux)
+       ,statement
+       ,@statements))
+
   (defmacro help/on-gui (statement &rest statements)
     "Evaluate the enclosed body only when run on GUI."
     `(when (display-graphic-p)
@@ -52,11 +58,27 @@
        ,statement
        ,@statements))
 
+  (defun help/save-all-file-buffers ()
+    "Saves every buffer associated with a file."
+    (interactive)
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (when (and (buffer-file-name) (buffer-modified-p))
+          (save-buffer)))))
+
+  (defun help/kill-other-buffers ()
+    "Kill all other buffers."
+    (interactive)
+    (mapc #'kill-buffer (delq (current-buffer) (buffer-list))))
+
+  (defvar help/delete-trailing-whitespace-p t
+    "Should trailing whitespace be removed?")
+
   (defun help/delete-trailing-whitespace ()
     "Delete trailing whitespace for everything but the current line.
 
-  If `help/delete-trailing-whitespace-p' is non-nil, then delete the whitespace.
-  This is useful for fringe cases where trailing whitespace is important."
+    If `help/delete-trailing-whitespace-p' is non-nil, then delete the whitespace.
+    This is useful for fringe cases where trailing whitespace is important."
     (interactive)
     (when help/delete-trailing-whitespace-p
       (let ((first-part-start (point-min))
@@ -65,11 +87,14 @@
             (second-part-end (point-max)))
         (delete-trailing-whitespace first-part-start first-part-end)
         (delete-trailing-whitespace second-part-start second-part-end))))
+
+  ;;(require 'help-functions)
 #+END_SRC
 
 ** Defaults
    #+NAME:
    #+BEGIN_SRC emacs-lisp
+     (defconst help/column-width 78)
      (setq-default
       inhibit-startup-message t
       inhibit-x-resources t
@@ -80,6 +105,8 @@
       frame-inhibit-implied-resize t
       initial-scratch-message ""
       hl-line-sticky-flag nil
+      ;; Set Fill Column
+      fill-column help/column-width
       ;; Prefer horizental split
       split-height-threshold nil
       split-width-threshold 120
@@ -266,7 +293,8 @@
 
       (use-package mini-modeline
         :straight t
-        :custom-face (mini-modeline-mode-line ((t (:background "dim gray" :box nil :height 0.1))))
+        :custom-face
+        (mini-modeline-mode-line ((t (:background "dim gray" :box nil :height 0.1))))
         (mini-modeline-mode-line-inactive ((t (:background "#333333" :box nil :height 0.1))))
         :config
         (setq mini-modeline-truncate-p t
@@ -373,6 +401,9 @@
        :straight t)
      ;;; Hash-tables
      (use-package ht
+       :straight t)
+     ;;; Caching
+     (use-package persistent-soft
        :straight t)
    #+END_SRC
 
@@ -791,6 +822,7 @@
      #+END_SRC
 
 *** Git
+**** Settings
     #+NAME:
     #+BEGIN_SRC emacs-lisp
       (setq vc-follows-symlinks t
@@ -813,6 +845,11 @@
         :custom
         (dgi-auto-hide-details-p nil))
     #+END_SRC
+**** Hydra-Git
+#+NAME:
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
 
 *** Meow
     #+NAME:
@@ -1293,6 +1330,11 @@
          :bind
          ((:map emmet-mode-keymap
                 ("M-e" . 'emmet-expand-line))))
+
+       (use-package htmlize
+         :config
+         (setq org-html-htmlize-output-type htmlize-output-type)
+         (setq htmlize-output-type 'inline-css))
      #+END_SRC
 
 ** Bioinformatics
@@ -1322,7 +1364,7 @@
                                                                    :family "Liberation Serif"
                                                                    :height 1.2)))
                               ;; (add-hook 'nov-mode-hook (lambda () (olivetti-mode 1)))
-                              (setq nov-text-width 72)))
+                              (setq nov-text-width 78)))
 
      #+END_SRC
 
