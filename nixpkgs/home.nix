@@ -5,7 +5,8 @@ let
   latex = pkgs.texlive.combine {
     inherit (pkgs.texlive) scheme-medium
       wrapfig capt-of preview lxfonts latexmk
-      natbib biblatex biblatex-abnt fourier xpatch;
+      natbib biblatex biblatex-abnt fourier xpatch
+      ctex xetex;
   };
 
   userBase = with pkgs; [

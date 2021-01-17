@@ -33,4 +33,4 @@
 (put 'upcase-region 'disabled nil)
 
 ;;;; init config file
-(org-babel-load-file (expand-file-name "~/.emacs.d/init-emacs.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/config.org"))

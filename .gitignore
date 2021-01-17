@@ -11,3 +11,6 @@
 /emacs/init-emacs.el
 /emacs/snippets/org/
 /emacs/.local/
+/emacs/config.el
+/emacs/org-gcal/
+/emacs/request/
