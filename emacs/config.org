@@ -177,7 +177,7 @@
   (global-unset-key (kbd "C-x C-p"))
   (global-set-key (kbd "C-x C-d") #'dired)
 
-  (load-file (concat my:cache "custom.el"))
+  ;; (load-file (concat my:cache "custom.el"))
 
   (defun +reopen-file-with-sudo ()
     (interactive)
@@ -276,9 +276,9 @@
 
       (use-package mini-modeline
         :straight t
-        ;; :custom-face
-        ;; (mini-modeline-mode-line ((t (:background "dim gray" :box nil :height 0.1))))
-        ;; (mini-modeline-mode-line-inactive ((t (:background "#333333" :box nil :height 0.1))))
+        :custom-face
+        (mini-modeline-mode-line ((t (:background "dim gray" :box nil :height 0.1))))
+        (mini-modeline-mode-line-inactive ((t (:background "#333333" :box nil :height 0.1))))
         :config
         (setq mini-modeline-truncate-p t
               mini-modeline- nil
@@ -507,7 +507,7 @@
 #+END_SRC
 
 *** Dabbrev
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
 
 #+END_SRC
@@ -949,7 +949,7 @@
 #+END_SRC
 
 *** Projectile
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (use-package projectile
     :init
@@ -1247,7 +1247,7 @@
 
 **** Org
 ***** Defaults
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (with-eval-after-load 'org
     (require 'org-inlinetask)
@@ -1341,7 +1341,7 @@
 #+END_SRC
 
 ***** Org-Agenda
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   ;; tasks management
   (setq org-refile-targets '((org-agenda-files :maxlevel . 1)))
@@ -1428,7 +1428,7 @@
 #+END_SRC
 
 ***** Org-Babel
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (defun help/org-babel-after-execute-hook ()
     "HELP settings for the `org-babel-after-execute-hook'.
@@ -1465,7 +1465,7 @@
 #+END_SRC
 
 ***** Org-Capture
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (setq org-capture-templates
         '(("t" "TODO" entry (file+headline "~/Dropbox/org/mygtd.org" "Tasks")
@@ -1484,7 +1484,7 @@
 #+END_SRC
 
 ***** Org-Hugo
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (use-package ox-hugo
     :straight t
@@ -1507,7 +1507,7 @@
 #+END_SRC
 
 ***** Org-Latex
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (eval-after-load 'org
     '(add-to-list 'org-latex-packages-alist '("" "minted")))
@@ -1554,7 +1554,7 @@
 #+END_SRC
 
 ***** Org-Presentation
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (use-package presentation
     :straight t
@@ -1568,13 +1568,13 @@
 #+END_SRC
 
 ***** Org-Publish
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
 
 #+END_SRC
 
 ***** Org-Ref
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (use-package org-ref
     ;; :custom ((org-ref-ivy-cite-completion t)
@@ -1591,7 +1591,7 @@
 #+END_SRC
 
 ***** Org-Superstar
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (use-package org-superstar
     :straight t
@@ -1602,14 +1602,14 @@
 #+END_SRC
 
 ***** Org-Tables
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (use-package org-table-sticky-header
     :ensure t
     :config
     (add-hook 'org-mode-hook #'org-table-sticky-header-mode))
 #+END_SRC
-     
+
 **** Perl
 #+NAME:
 #+BEGIN_SRC emacs-lisp
@@ -1690,7 +1690,7 @@
 #+END_SRC
 
 **** Toml
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (use-package toml-mode
     :straight t
@@ -1698,7 +1698,7 @@
 #+END_SRC
 
 **** Yaml
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   (use-package yaml-mode
     :straight t
@@ -1822,7 +1822,7 @@
 #+END_SRC
 
 **** Latex
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp
   ;; (use-package auctex
   ;;   :straight t)
