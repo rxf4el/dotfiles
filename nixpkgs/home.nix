@@ -88,7 +88,7 @@ in
 
     git = { enable = true;
             userName = "rxf4el";
-            userEmail = "rxf4e1@tuta.io";
+            userEmail = "rxf4e1@gmail.com";
           };
 
     fzf = { enable = true;
