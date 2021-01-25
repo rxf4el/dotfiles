@@ -33,6 +33,7 @@ let
 
   devBase = with pkgs; [
     gcc clojure leiningen
+    hugo
     adoptopenjdk-bin
     pandoc gnuplot graphviz
     sqlite ripgrep

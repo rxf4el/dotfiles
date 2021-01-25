@@ -1,6 +1,7 @@
-#+TITLE: EMACS CONFIGURATION
+#+TITLE: EMACS LITERATE CONFIGURATION
 #+AUTHOR: rxf4el
 #+EMAIL: rxf4el@gmail.com
+#+OPTIONS:
 * Header
 #+NAME:
 #+BEGIN_SRC emacs-lisp
@@ -32,9 +33,14 @@
 ** Whoami
 #+NAME:
 #+BEGIN_SRC emacs-lisp
-  (setq user-full-name    "Rafael M. Marte")
-  (setq user-mail-address "rxf4el@gmail.com")
-  (setq user-login-name   "rxf4el")
+  ;;; Who am i?
+  (setq user-full-name    "Rafael M. Marte"
+        user-mail-address "rxf4el@gmail.com"
+        user-login-name   "rxf4el")
+
+  ;;; Where am i?
+  (setq calendar-latitude -23.5
+        calendar-longitude -46.6)
 #+END_SRC
 
 ** Functions
@@ -58,37 +64,12 @@
        ,statement
        ,@statements))
 
-  ;; (defun help/save-all-file-buffers ()
-  ;;   "Saves every buffer associated with a file."
-  ;;   (interactive)
-  ;;   (dolist (buf (buffer-list))
-  ;;     (with-current-buffer buf
-  ;;       (when (and (buffer-file-name) (buffer-modified-p))
-  ;;         (save-buffer)))))
-
-  ;; (defun help/kill-other-buffers ()
-  ;;   "Kill all other buffers."
-  ;;   (interactive)
-  ;;   (mapc #'kill-buffer (delq (current-buffer) (buffer-list))))
-
-  ;; (defvar help/delete-trailing-whitespace-p t
-  ;;   "Should trailing whitespace be removed?")
-
-  ;; (defun help/delete-trailing-whitespace ()
-  ;;   "Delete trailing whitespace for everything but the current line.
-
-  ;;   If `help/delete-trailing-whitespace-p' is non-nil, then delete the whitespace.
-  ;;   This is useful for fringe cases where trailing whitespace is important."
-  ;;   (interactive)
-  ;;   (when help/delete-trailing-whitespace-p
-  ;;     (let ((first-part-start (point-min))
-  ;;           (first-part-end (point-at-bol))
-  ;;           (second-part-start (point-at-eol))
-  ;;           (second-part-end (point-max)))
-  ;;       (delete-trailing-whitespace first-part-start first-part-end)
-  ;;       (delete-trailing-whitespace second-part-start second-part-end))))
-
-  ;; (require 'help-functions)
+  (defvar my:blog-dir "~/Projects/www/my-blog/posts/")
+  (defun create-blog-post ()
+    "Create an org file in `my:blog-dir'."
+    (interactive)
+    (let ((name (read-string "Filename: ")))
+      (expand-file-name (format "%s.org" name) my:blog-dir)))
 #+END_SRC
 
 ** Defaults
@@ -196,6 +177,8 @@
   (global-unset-key (kbd "C-x C-p"))
   (global-set-key (kbd "C-x C-d") #'dired)
 
+  (load-file (concat my:cache "custom.el"))
+
   (defun +reopen-file-with-sudo ()
     (interactive)
     (find-alternate-file (format "/sudo::%s" (buffer-file-name))))
@@ -293,9 +276,9 @@
 
       (use-package mini-modeline
         :straight t
-        :custom-face
-        (mini-modeline-mode-line ((t (:background "dim gray" :box nil :height 0.1))))
-        (mini-modeline-mode-line-inactive ((t (:background "#333333" :box nil :height 0.1))))
+        ;; :custom-face
+        ;; (mini-modeline-mode-line ((t (:background "dim gray" :box nil :height 0.1))))
+        ;; (mini-modeline-mode-line-inactive ((t (:background "#333333" :box nil :height 0.1))))
         :config
         (setq mini-modeline-truncate-p t
               mini-modeline- nil
@@ -329,9 +312,6 @@
     #+BEGIN_SRC emacs-lisp
       (add-to-list 'load-path (expand-file-name "themes" user-emacs-directory))
 
-      (defvar +after-change-theme-hook nil
-        "Hooks called after theme is changed.")
-
       (require 'joker-theme)
       (require 'storybook-theme)
       (require 'printed-theme)
@@ -340,39 +320,18 @@
         (add-to-list 'default-frame-alist (cons 'internal-border-width margin))
         (set-frame-parameter nil 'internal-border-width margin))
 
-      (defvar +current-theme nil
-        "Name for current theme")
+      (use-package solarized-theme
+        :straight t
+        :config
+        (load-theme 'solarized-dark t)
+        ;; (load-theme 'solarized-light t)
+        )
 
-      (defvar +theme-list
-        '(storybook joker printed))
-
-      (set-display-table-slot standard-display-table
-                              'vertical-border
-                              (make-glyph-code ?┃))
-
-      (defun +change-theme (&optional no-msg)
-        (interactive)
-        (let ((theme (car +theme-list)))
-          (disable-theme theme)
-          (setq +theme-list (append (cdr +theme-list) (list theme)))
-          (let ((this-theme (car +theme-list)))
-            (load-theme this-theme t)
-            (unless no-msg
-              (message "Load theme: %s" this-theme))
-            (run-hook-with-args '+after-change-theme-hook this-theme))))
-
-      (defun +highlight-prog-mode-function-name ()
-        (face-remap-add-relative 'font-lock-function-name-face :underline t :extend t))
-
-      (add-hook 'prog-mode-hook '+highlight-prog-mode-function-name)
-
-      (defun +reload-font-and-theme ()
-        (interactive)
-        (+load-font)
-        (load-theme (car +theme-list) t))
-
-      (+change-theme t)
-
+      ;; (use-package circadian
+      ;;   :config
+      ;;   (setq circadian-themes '((:sunrise . solarized-light)
+      ;;                            (:sunset . solarized-dark)))
+      ;;   :init (circadian-setup))
     #+END_SRC
 
 * Packages
@@ -404,14 +363,16 @@
     :straight t)
        ;;; Caching
   (use-package persistent-soft
-    :straight t)
+    :straight t
+    :config
+    (setq pcache-directory my:cache))
 #+END_SRC
 
 ** Built-ins
 *** Auto-revert
 #+NAME:
 #+BEGIN_SRC emacs-lisp
-(global-auto-revert-mode 1)
+  (global-auto-revert-mode 1)
 #+END_SRC
 
 *** iBuffer
@@ -546,6 +507,11 @@
 #+END_SRC
 
 *** Dabbrev
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
+
 *** Dired
 #+NAME:
 #+BEGIN_SRC emacs-lisp
@@ -983,6 +949,17 @@
 #+END_SRC
 
 *** Projectile
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :init
+    (projectile-mode +1)
+    :bind ("C-c p p" . projectile-command-map)
+    :config
+    (setq projectile-sort-order 'recentf
+          projectile-require-project-root t))
+#+END_SRC
+
 *** Maple-iMenu
 #+NAME:
 #+BEGIN_SRC emacs-lisp
@@ -1005,7 +982,11 @@
 #+NAME:
 #+BEGIN_SRC emacs-lisp
   (use-package multiple-cursors
-    :straight t)
+    :straight t
+    :bind (("C-c c e" . mc/edit-lines)
+           ("C->" . mc/mark-next-like-this)
+           ("C-<" . mc/mark-previous-like-this)
+           ("C-c c a" . mc/mark-all-like-this)))
 #+END_SRC
 
 *** Scrolling
@@ -1147,17 +1128,43 @@
         (face-remap-add-relative 'default :height 0.8))
 
       (use-package treemacs
-                   :commands
-                   (treemacs treemacs-select-window)
-                   :bind
-                   ("<f1>" . 'treemacs-select-window)
-                   (:map treemacs-mode-map
-                         ("<f1>" . 'treemacs))
-                   :custom
-                   (treemacs-no-png-images t)
-                   (treemacs-width 22)
-                   :init
-                   (add-hook 'treemacs-mode-hook '+treemacs-scale-font-size))
+        :commands
+        (treemacs treemacs-select-window)
+        :bind
+        ("<f1>" . 'treemacs-select-window)
+        (:map treemacs-mode-map
+              ("<f1>" . 'treemacs))
+        :custom
+        (treemacs-collapse-dirs 3)
+        (treemacs-deferred-git-apply-delay 0.5)
+        (treemacs-display-in-side-window t)
+        (treemacs-file-event-delay 5000)
+        (treemacs-file-follow-delay 0.2)
+        (treemacs-follow-after-init t)
+        (treemacs-follow-recenter-distance 0.1)
+        (treemacs-git-command-pipe "")
+        (treemacs-goto-tag-strategy 'refetch-index)
+        (treemacs-indentation 2)
+        (treemacs-indentation-string " ")
+        (treemacs-is-never-other-window nil)
+        (treemacs-max-git-entries 5000)
+        (treemacs-no-png-images nil)
+        (treemacs-no-delete-other-windows t)
+        (treemacs-project-follow-cleanup nil)
+        (treemacs-persist-file (expand-file-name ".cache/treemacs-persist" user-emacs-directory))
+        (treemacs-recenter-after-file-follow nil)
+        (treemacs-recenter-after-tag-follow nil)
+        (treemacs-show-cursor nil)
+        (treemacs-show-hidden-files t)
+        (treemacs-silent-filewatch nil)
+        (treemacs-silent-refresh nil)
+        (treemacs-sorting 'alphabetic-desc)
+        (treemacs-space-between-root-nodes t)
+        (treemacs-tag-follow-cleanup t)
+        (treemacs-tag-follow-delay 1.5)
+        (treemacs-width 35)
+        :init
+        (add-hook 'treemacs-mode-hook '+treemacs-scale-font-size))
     #+END_SRC
 
 *** Which-Keys
@@ -1198,6 +1205,7 @@
 
   (use-package cider
     :commands (cider-jack-in cider-jack-in-cljs cider-jack-in-clj&cljs)
+    :hook (eldoc-mode . cider-mode)
     :bind
     (:map
      cider-mode-map
@@ -1237,51 +1245,416 @@
 
      #+END_SRC
 
+**** Org
+***** Defaults
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    (require 'org-inlinetask)
+    (require 'ox)
+    (require 'ox-latex)
+    (require 'org-tempo))
+
+  (use-package org
+    :straight (:type built-in)
+    :bind
+    ("C-c o a" . org-agenda)
+    ("C-c o c" . org-capture)
+    (:map org-mode-map
+          ("<f8>" . org-latex-auto-toggle)
+          ("<return>" . org-return-indent)
+          ("C-M-<return>" . newline))
+    :config
+    ;; Org Dirs:
+    (setq org-directory (expand-file-name "~/Dropbox/org")
+          org-default-notes-file (concat org-directory "/mygtd.org")
+          org-id-locations-file my:cache)
+
+    ;; Org ToDos:
+    (setq org-todo-keywords
+          '((sequence "IDEA(i)" "TODO(t)" "STARTED(s)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)")
+            (sequence "|" "CANCELED(c)" "DELEGATED(l)" "SOMEDAY(f)")))
+    ;; Org Tags:
+    (setq org-tag-persistent-alist
+          '((:startgroup . nil)
+            ("HOME" . ?h)
+            ("RESEARCH" . ?r)
+            ("TEACHING" . ?t)
+            (:endgroup . nil)
+            (:startgroup . nil)
+            ("OS" . ?o)
+            ("DEV" . ?d)
+            ("WWW" . ?w)
+            (:endgroup . nil)
+            (:startgroup . nil)
+            ("EASY" . ?e)
+            ("MEDIUM" . ?m)
+            ("HARD" . ?a)
+            (:endgroup . nil)
+            ("UCANCODE" . ?c)
+            ("URGENT" . ?u)
+            ("KEY" . ?k)
+            ("BONUS" . ?b)
+            ("noexport" . ?x)
+            ))
+    ;; Settings:
+    (setq org-fast-tag-selection-single-key t
+          org-use-fast-todo-selection t
+          org-use-speed-commands t
+          org-use-sub-superscripts '{}
+          org-startup-with-inline-images (display-graphic-p)
+          org-startup-align-all-tables t
+          org-log-states-order-reversed nil
+          org-log-into-drawer t
+          org-log-refile 'note
+          org-refile-targets '((nil . (:maxlevel . 10)))
+          org-refile-use-outline-path t
+          org-refile-allow-creating-parent-nodes nil
+          org-archive-mark-done nil
+          org-adapt-indentation nil
+          org-confirm-shell-link-function 'y-or-n-p
+          org-confirm-elisp-link-function 'y-or-n-p
+          org-enforce-todo-dependencies t
+          org-image-actual-width t
+          org-pretty-entities t
+          org-fontify-emphasized-text t
+          org-catch-invisible-edits 'error
+          org-edit-src-code nil
+          org-hide-macro-markers nil
+          org-hide-emphasis-markers nil
+          org-html-checkbox-type 'unicode
+          org-return-follows-link t
+          org-loop-over-headlines-in-active-region t
+          org-footnote-auto-adjust nil
+          org-footnote-auto-label 'random
+          org-footnote-define-inline t
+          org-footnote-section nil
+          org-src-fontify-natively t
+          org-src-strip-leading-and-trailing-blank-lines t
+          org-src-window-setup 'current-window
+          org-src-tab-acts-natively nil))
+
+    ;;; Manage it's Source-Block backed buffers the same as the rest of this system
+  (setq org-edit-src-auto-save-idle-delay 0
+        org-edit-src-turn-on-auto-save nil
+        org-src-tab-acts-natively nil)
+#+END_SRC
+
+***** Org-Agenda
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  ;; tasks management
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 1)))
+  (setq org-log-done t
+        org-clock-idle-time nil)
+
+  ;; Org-Agenda
+  ;; agenda & diary
+  (setq org-columns-default-format "%50ITEM(Task) %10CLOCKSUM %16TIMESTAMP_IA")
+  (setq org-agenda-include-diary nil
+        org-agenda-tags-todo-honor-ignore-options t
+        org-agenda-start-on-weekday nil
+        org-agenda-start-day "-1d"
+        org-agenda-span 7
+        show-week-agenda-p t
+        org-agenda-timegrid-use-ampm 1
+        org-agenda-inhibit-startup t
+        org-agenda-files (quote
+                          ("~/Dropbox/org/work.org"
+                           "~/Dropbox/org/stuff.org"
+                           "~/Dropbox/org/inbox.org"
+                           "~/Dropbox/org/mygtd.org")))
+
+  ;; (setq org-agenda-time-grid (quote ((daily today remove-match)
+  ;;                                    #("----------------" 0 16 (org-heading t))
+  ;;                                    (0900 1100 1300 1500 1700))))
+
+  (use-package org-super-agenda
+    :straight t
+    :defer t
+    :config
+    (setq org-super-agenda-groups '((:name "Today"
+                                           :time-grid t
+                                           :scheduled today)
+                                    (:name "Due today"
+                                           :deadline today)
+                                    (:name "Important"
+                                           :priority "A")
+                                    (:name "Overdue"
+                                           :deadline past)
+                                    (:name "Due soon"
+                                           :deadline future)
+                                    (:name "Big Outcomes"
+                                           :tag "bo")))
+    (org-super-agenda-mode))
+
+  (use-package org-gcal
+    :config
+    :config
+    (setq org-gcal-client-id "70155025522-sod2sd5j69fqbtajhnllgmgprhavspo5.apps.googleusercontent.com"
+          org-gcal-client-secret "x58hbBKXDZ8JfdEdeDYYC8_u"
+          org-gcal-fetch-file-alist '(("rxf4el@gmail.com" .  "~/Dropbox/org/inbox.org"))))
+
+  (use-package calfw
+    :config
+    (setq cfw:display-calendar-holidays nil
+          calendar-week-start-day 1
+          cfw:fchar-junction ?╬
+          cfw:fchar-vertical-line ?║
+          cfw:fchar-horizontal-line ?═
+          cfw:fchar-left-junction ?╠
+          cfw:fchar-right-junction ?╣
+          cfw:fchar-top-junction ?╦
+          cfw:fchar-top-left-corner ?╔
+          cfw:fchar-top-right-corner ?╗))
+
+  (use-package calfw-org
+    :bind ("C-c f" . cfw:open-org-calendar)
+    :config
+    (setq cfw:org-overwrite-default-keybinding t))
+
+  ;; Org-Utils (need to port for the right place)
+  ;; date insertion configuration
+  (setq org-expiry-created-property-name "CREATED"
+        org-expiry-inactive-timestamps t
+        org-todo-state-tags-triggers (quote
+                                      (("CANCELLED" ("CANCELLED" . t))
+                                       ("WAITING" ("WAITING" . t))
+                                       ("HOLD" ("WAITING") ("HOLD" . t))
+                                       (done ("WAITING") ("HOLD"))
+                                       ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+                                       ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+                                       ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
+#+END_SRC
+
+***** Org-Babel
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (defun help/org-babel-after-execute-hook ()
+    "HELP settings for the `org-babel-after-execute-hook'.
+    This does not interfere with exports.
+    Attribution: URL `https://lists.gnu.org/archive/html/emacs-orgmode/2015-01/msg00534.html'"
+    (interactive)
+    (org-redisplay-inline-images))
+
+  (add-hook 'org-babel-after-execute-hook #'help/org-babel-after-execute-hook)
+
+  (setq org-confirm-babel-evaluate nil
+        org-babel-min-lines-for-block-output 0)
+  (setq org-babel-no-eval-on-ctrl-c-ctrl-c t)
+
+      ;;; Org babel
+
+  (defun +org-redisplay-inline-images ()
+    (when org-inline-image-overlays
+      (org-redisplay-inline-images)))
+
+  (defun +org-babel-setup ()
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((python . t)
+       (emacs-lisp . t)
+       (clojure . t)))
+    (setq org-babel-clojure-backend 'cider)
+    (setq org-confirm-babel-evaluate nil)
+    (add-hook 'org-babel-after-execute-hook '+org-redisplay-inline-images))
+
+  (require 'ob-clojure)
+  (require 'cider)
+  (+org-babel-setup)
+#+END_SRC
+
+***** Org-Capture
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (setq org-capture-templates
+        '(("t" "TODO" entry (file+headline "~/Dropbox/org/mygtd.org" "Tasks")
+           "* TODO %?\nAdded: %U\n" :prepend t :kill-buffer t)
+
+          ("i" "IDEA" entry (file+headline "~/Dropbox/org/mygtd.org" "Someday/Maybe")
+           "* IDEA %?\nAdded: %U\n" :prepend t :kill-buffer t)
+
+          ("p" "BLOG POST" plain
+           (file create-blog-post)
+           (file "~/.emacs.d/org-templates/post.orgcaptmpl"))
+
+          ("h" "Hugo Post" entry
+           (file+olp "all-posts.org" "Blog Ideas")
+           (function org-hugo-new-subtree-post-capture-template))))
+#+END_SRC
+
+***** Org-Hugo
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-hugo
+    :straight t
+    :after ox)
+
+  ;; Populates only the EXPORT_FILE_NAME property in the inserted headline.
+  (with-eval-after-load 'org-capture
+    (defun org-hugo-new-subtree-post-capture-template ()
+      "Returns `org-capture' template string for new Hugo post."
+      (let* ((title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
+             (fname (org-hugo-slug title)))
+        (mapconcat #'identity
+                   `(
+                     ,(concat "* TODO " title)
+                     ":PROPERTIES:"
+                     ,(concat ":EXPORT_FILE_NAME: " fname)
+                     ":END:"
+                     "%?\n")          ;Place the cursor here finally
+                   "\n"))))
+#+END_SRC
+
+***** Org-Latex
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (eval-after-load 'org
+    '(add-to-list 'org-latex-packages-alist '("" "minted")))
+
+  (setq org-latex-listings 'minted
+        org-latex-listings t
+        org-latex-default-figure-position "H"
+        org-highlight-latex-and-related '(latex script entities))
+
+  ;; (setq-default bibtex-dialect 'biblatex)
+
+  ;; For My Thesis
+
+  (eval-after-load "ox-latex"
+    '(progn
+       (add-to-list 'org-latex-classes
+                    '("ifimaster"
+                      "\\documentclass{ifimaster}
+    [DEFAULT-PACKAGES]
+    [PACKAGES]
+    [EXTRA]
+    \\usepackage{babel,csquotes,ifimasterforside,url,varioref}"
+                      ("\\chapter{%s}" . "\\chapter*{%s}")
+                      ("\\section{%s}" . "\\section*{%s}")
+                      ("\\subsection{%s}" . "\\subsection*{%s}")
+                      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                      ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+       (add-to-list 'org-latex-classes
+                    '("easychair" "\\documentclass{easychair}"
+                      ("\\section{%s}" . "\\section*{%s}")
+                      ("\\subsection{%s}" . "\\subsection*{%s}")
+                      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                      ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+       (custom-set-variables '(org-export-allow-bind-keywords t))))
+
+  (eval-after-load 'tex-mode
+    '(setcar (cdr (cddaar tex-compile-commands)) " -shell-escape "))
+
+  (eval-after-load 'ox-latex
+    '(setq org-latex-pdf-process
+           '("latexmk -pdflatex='pdflatex -shell-escape -interaction nonstopmode' -pdf -f %f")))
+#+END_SRC
+
+***** Org-Presentation
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (use-package presentation
+    :straight t
+    :config
+    (global-set-key (kbd "<M-f5>") (lambda ()
+                                     (interactive)
+                                     (if presentation-mode
+                                         (presentation-mode 0)
+                                       (presentation-mode 1))
+                                     (toggle-frame-fullscreen))))
+#+END_SRC
+
+***** Org-Publish
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
+
+***** Org-Ref
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (use-package org-ref
+    ;; :custom ((org-ref-ivy-cite-completion t)
+    ;;          (org-ref-completion-library 'org-ref-ivy-cite))
+    :config
+    (require 'org-ref)
+    (require 'org-ref-pdf)
+    (require 'org-ref-bibtex)
+    (require 'org-ref-url-utils)
+    (setq reftex-default-bibliography "~/Dropbox/org/biblio/ref.bib"
+          org-ref-default-bibliography '("~/Dropbox/org/biblio/ref.bib")
+          org-ref-bibliography-notes "~/Dropbox/org/biblio/notes.org"
+          org-ref-pdf-directory "~/Dropbox/org/biblio/papers/"))
+#+END_SRC
+
+***** Org-Superstar
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (use-package org-superstar
+    :straight t
+    :config
+    (setq org-superstar-headline-bullets-list '("●")
+          org-superstar-leading-bullet "  ")
+    :hook (org-mode . org-superstar-mode))
+#+END_SRC
+
+***** Org-Tables
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (use-package org-table-sticky-header
+    :ensure t
+    :config
+    (add-hook 'org-mode-hook #'org-table-sticky-header-mode))
+#+END_SRC
+     
 **** Perl
 #+NAME:
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package cperl-mode
-  ;;   :mode ("\\.\\([pP][Llm]\\|al\\)\\'" . cperl-mode) ; cperl-mode instead of perl-mode
-  ;;   :interpreter (("perl"     . cperl-mode)
-  ;;                 ("perl5"    . cperl-mode)
-  ;;                 ("miniperl" . cperl-mode))
-  ;;   :config
-  ;;   (progn
-  ;;     (setq cperl-indent-level               3)
-  ;;     (setq cperl-close-paren-offset         -3)
-  ;;     (setq cperl-continued-statement-offset 3)
-  ;;     (setq cperl-indent-parens-as-block     t)
-  ;;     (setq cperl-tab-always-indent          t)
+  (use-package cperl-mode
+    :mode ("\\.\\([pP][Llm]\\|al\\)\\'" . cperl-mode) ; cperl-mode instead of perl-mode
+    :interpreter (("perl"     . cperl-mode)
+                  ("perl5"    . cperl-mode)
+                  ("miniperl" . cperl-mode))
+    :config
+    (progn
+      (setq cperl-indent-level               3)
+      (setq cperl-close-paren-offset         -3)
+      (setq cperl-continued-statement-offset 3)
+      (setq cperl-indent-parens-as-block     t)
+      (setq cperl-tab-always-indent          t)
 
-  ;;     ;; No paren electricity!
-  ;;     (setq cperl-electric-parens-string nil)))
+      ;; No paren electricity!
+      (setq cperl-electric-parens-string nil)))
 
 #+END_SRC
 
 **** Python
 #+NAME:
 #+BEGIN_SRC emacs-lisp
-  (defun python-template ()
-    (interactive)
-    (insert "#!/usr/bin/env python\n# -*- coding: utf-8 -*-\n\n"))
+  ;; (defun python-template ()
+  ;;   (interactive)
+  ;;   (insert "#!/usr/bin/env python\n# -*- coding: utf-8 -*-\n\n"))
 
-  (add-hook 'python-mode-hook '(lambda ()
-                                 (when (empty-buffer?) (python-template))))
-  (use-package python
-    :config
-    (setq python-indent 4
-          python-indent-offset 4
-          python-shell-interpreter "python3"
-          py-switch-buffers-on-execute-p t
-          py-split-window-on-execute nil)
-    ;; lsp-pyls-plugins-pycodestyle-enabled nil
-    ;; lsp-pyls-plugins-pyflakes-enabled nil
-    ;; lsp-pyls-plugins-flake8-enabled t)
+  ;; (add-hook 'python-mode-hook '(lambda ()
+  ;;                                (when (empty-buffer?) (python-template))))
+  ;; (use-package python
+  ;;   :config
+  ;;   (setq python-indent 4
+  ;;         python-indent-offset 4
+  ;;         python-shell-interpreter "python3"
+  ;;         py-switch-buffers-on-execute-p t
+  ;;         py-split-window-on-execute nil)
+  ;;   ;; lsp-pyls-plugins-pycodestyle-enabled nil
+  ;;   ;; lsp-pyls-plugins-pyflakes-enabled nil
+  ;;   ;; lsp-pyls-plugins-flake8-enabled t)
 
-    ;; (projectile-register-project-type 'python '("pyproject.toml")
-    ;;                                   :compile ""
-    ;;                                   :test "")
-    :hook (python-mode-hook . eglot-ensure))
+  ;;   ;; (projectile-register-project-type 'python '("pyproject.toml")
+  ;;   ;;                                   :compile ""
+  ;;   ;;                                   :test "")
+  ;;   :hook (python-mode-hook . eglot-ensure))
 #+END_SRC
 
 **** R
@@ -1314,6 +1687,22 @@
 #+BEGIN_SRC emacs-lisp
   (use-package nix-mode
     :mode ("\\.nix\\'" . nix-mode))
+#+END_SRC
+
+**** Toml
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (use-package toml-mode
+    :straight t
+    :mode ("\\.toml\\'" . toml-mode))
+#+END_SRC
+
+**** Yaml
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (use-package yaml-mode
+    :straight t
+    :mode ("\\.yaml\\'" . yaml-mode))
 #+END_SRC
 
 **** Web
@@ -1433,364 +1822,10 @@
 #+END_SRC
 
 **** Latex
-**** Org-Mode
-***** Org
-#+NAME:
-#+BEGIN_SRC emacs-lisp
-  (with-eval-after-load 'org
-    (require 'org-inlinetask)
-    (require 'ox)
-    (require 'ox-latex)
-    (require 'org-tempo))
-
-  (use-package org
-    :straight (:type built-in)
-    :bind
-    ("C-c o a" . org-agenda)
-    ("C-c o c" . org-capture)
-    (:map org-mode-map
-          ("<f8>" . org-latex-auto-toggle)
-          ("<return>" . org-return-indent)
-          ("C-M-<return>" . newline))
-    :config
-    ;; Org Dirs:
-    (setq org-directory (expand-file-name "~/Dropbox/org")
-          org-default-notes-file (concat org-directory "/mygtd.org"))
-
-    ;; Org ToDos:
-    (setq org-todo-keywords
-          '((sequence "IDEA(i)" "TODO(t)" "STARTED(s)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)")
-            (sequence "|" "CANCELED(c)" "DELEGATED(l)" "SOMEDAY(f)")))
-    ;; Org Tags:
-    (setq org-tag-persistent-alist
-          '((:startgroup . nil)
-            ("HOME" . ?h)
-            ("RESEARCH" . ?r)
-            ("TEACHING" . ?t)
-            (:endgroup . nil)
-            (:startgroup . nil)
-            ("OS" . ?o)
-            ("DEV" . ?d)
-            ("WWW" . ?w)
-            (:endgroup . nil)
-            (:startgroup . nil)
-            ("EASY" . ?e)
-            ("MEDIUM" . ?m)
-            ("HARD" . ?a)
-            (:endgroup . nil)
-            ("UCANCODE" . ?c)
-            ("URGENT" . ?u)
-            ("KEY" . ?k)
-            ("BONUS" . ?b)
-            ("noexport" . ?x)
-            ))
-    ;; Settings:
-    (setq org-fast-tag-selection-single-key t
-          org-use-fast-todo-selection t
-          org-use-speed-commands t
-          org-use-sub-superscripts '{}
-          org-startup-with-inline-images (display-graphic-p)
-          org-startup-align-all-tables t
-          org-log-states-order-reversed nil
-          org-log-into-drawer t
-          org-log-refile 'note
-          org-refile-targets '((nil . (:maxlevel . 10)))
-          org-refile-use-outline-path t
-          org-refile-allow-creating-parent-nodes nil
-          org-archive-mark-done nil
-          org-adapt-indentation nil
-          org-confirm-shell-link-function 'y-or-n-p
-          org-confirm-elisp-link-function 'y-or-n-p
-          org-enforce-todo-dependencies t
-          org-image-actual-width t
-          org-pretty-entities t
-          org-fontify-emphasized-text t
-          org-catch-invisible-edits 'error
-          org-edit-src-code nil
-          org-hide-macro-markers nil
-          org-hide-emphasis-markers nil
-          org-html-checkbox-type 'unicode
-          org-return-follows-link t
-          org-loop-over-headlines-in-active-region t
-          org-footnote-auto-adjust nil
-          org-footnote-auto-label 'random
-          org-footnote-define-inline t
-          org-footnote-section nil
-          org-src-fontify-natively t
-          org-src-strip-leading-and-trailing-blank-lines t
-          org-src-window-setup 'current-window
-          org-src-tab-acts-natively nil))
-
-  ;;; Manage it's Source-Block backed buffers the same as the rest of this system
-  (setq org-edit-src-auto-save-idle-delay 0
-        org-edit-src-turn-on-auto-save nil
-        org-src-tab-acts-natively nil)
-
-  (setq org-latex-listings t)
-  (setq org-latex-default-figure-position "H")
-  (setq org-highlight-latex-and-related '(latex script entities))
-#+END_SRC
-
-***** Org-Agenda
-#+NAME:
-#+BEGIN_SRC emacs-lisp
-  ;; tasks management
-  (setq org-refile-targets '((org-agenda-files :maxlevel . 1)))
-  (setq org-log-done t
-        org-clock-idle-time nil)
-
-  ;; Org-Agenda
-  ;; agenda & diary
-  (setq org-columns-default-format "%50ITEM(Task) %10CLOCKSUM %16TIMESTAMP_IA")
-  (setq org-agenda-include-diary nil
-        org-agenda-tags-todo-honor-ignore-options t
-        org-agenda-start-on-weekday nil
-        org-agenda-start-day "-1d"
-        org-agenda-span 7
-        show-week-agenda-p t
-        org-agenda-timegrid-use-ampm 1
-        org-agenda-inhibit-startup t
-        org-agenda-files (quote
-                          ("~/Dropbox/org/work.org"
-                           "~/Dropbox/org/stuff.org"
-                           "~/Dropbox/org/inbox.org"
-                           "~/Dropbox/org/mygtd.org")))
-
-  (use-package org-super-agenda
-    :straight t
-    :defer t
-    :config
-    (setq org-super-agenda-groups '((:name "Today"
-                                           :time-grid t
-                                           :scheduled today)
-                                    (:name "Due today"
-                                           :deadline today)
-                                    (:name "Important"
-                                           :priority "A")
-                                    (:name "Overdue"
-                                           :deadline past)
-                                    (:name "Due soon"
-                                           :deadline future)
-                                    (:name "Big Outcomes"
-                                           :tag "bo")))
-    (org-super-agenda-mode))
-
-  (use-package org-gcal
-    :config
-    :config
-    (setq org-gcal-client-id "70155025522-sod2sd5j69fqbtajhnllgmgprhavspo5.apps.googleusercontent.com"
-          org-gcal-client-secret "x58hbBKXDZ8JfdEdeDYYC8_u"
-          org-gcal-fetch-file-alist '(("rxf4el@gmail.com" .  "~/Dropbox/org/inbox.org"))))
-
-  (use-package calfw
-    :config
-    (setq cfw:display-calendar-holidays nil
-          calendar-week-start-day 1
-          cfw:fchar-junction ?╬
-          cfw:fchar-vertical-line ?║
-          cfw:fchar-horizontal-line ?═
-          cfw:fchar-left-junction ?╠
-          cfw:fchar-right-junction ?╣
-          cfw:fchar-top-junction ?╦
-          cfw:fchar-top-left-corner ?╔
-          cfw:fchar-top-right-corner ?╗))
-
-  (use-package calfw-org
-    :bind ("C-c f" . cfw:open-org-calendar)
-    :config
-    (setq cfw:org-overwrite-default-keybinding t))
-
-  ;; Org-Utils (need to port for the right place)
-  ;; date insertion configuration
-  (setq org-expiry-created-property-name "CREATED"
-        org-expiry-inactive-timestamps t
-        org-todo-state-tags-triggers (quote
-                                      (("CANCELLED" ("CANCELLED" . t))
-                                       ("WAITING" ("WAITING" . t))
-                                       ("HOLD" ("WAITING") ("HOLD" . t))
-                                       (done ("WAITING") ("HOLD"))
-                                       ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
-                                       ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
-                                       ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
-
-#+END_SRC
-
-***** Org-Babel
-#+NAME:
-#+BEGIN_SRC emacs-lisp
-  (defun help/org-babel-after-execute-hook ()
-    "HELP settings for the `org-babel-after-execute-hook'.
-  This does not interfere with exports.
-  Attribution: URL `https://lists.gnu.org/archive/html/emacs-orgmode/2015-01/msg00534.html'"
-    (interactive)
-    (org-redisplay-inline-images))
-
-  (add-hook 'org-babel-after-execute-hook #'help/org-babel-after-execute-hook)
-
-  (setq org-confirm-babel-evaluate nil
-        org-babel-min-lines-for-block-output 0)
-  (setq org-babel-no-eval-on-ctrl-c-ctrl-c t)
-
-    ;;; Org babel
-
-  (defun +org-redisplay-inline-images ()
-    (when org-inline-image-overlays
-      (org-redisplay-inline-images)))
-
-  (defun +org-babel-setup ()
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((python . t)
-       (emacs-lisp . t)
-       (clojure . t)))
-    (setq org-babel-clojure-backend 'cider)
-    (setq org-confirm-babel-evaluate nil)
-    (add-hook 'org-babel-after-execute-hook '+org-redisplay-inline-images))
-
-  (require 'ob-clojure)
-  (require 'cider)
-  (+org-babel-setup)
-#+END_SRC
-
-***** Org-Capture
 #+NAME: 
 #+BEGIN_SRC emacs-lisp
-  (setq org-capture-templates
-        '(("t" "TODO" entry (file+headline "~/Dropbox/org/mygtd.org" "Tasks")
-           "* TODO %?\nAdded: %U\n" :prepend t :kill-buffer t)
-          ("i" "IDEA" entry (file+headline "~/Dropbox/org/mygtd.org" "Someday/Maybe")
-           "* IDEA %?\nAdded: %U\n" :prepend t :kill-buffer t)))
-#+END_SRC
-
-***** Org-Latex
-#+NAME:
-#+BEGIN_SRC emacs-lisp
-  ;; (defvar-local +org-last-in-latex nil)
-
-  ;; (defun +org-post-command-hook ()
-  ;;   (ignore-errors
-  ;;     (let ((in-latex (rime-predicate-org-latex-mode-p)))
-  ;;       (if (and +org-last-in-latex (not in-latex))
-  ;;           (progn (org-latex-preview)
-  ;;                  (setq +org-last-in-latex nil)))
-
-  ;;       (when-let ((ovs (overlays-at (point))))
-  ;;         (when (->> ovs
-  ;;                    (--map (overlay-get it 'org-overlay-type))
-  ;;                    (--filter (equal it 'org-latex-overlay)))
-  ;;           (org-latex-preview)
-  ;;           (setq +org-last-in-latex t)))
-
-  ;;       (when in-latex
-  ;;         (setq +org-last-in-latex t)))))
-
-  ;; (define-minor-mode org-latex-auto-toggle
-  ;;   "Auto toggle latex overlay when cursor enter/leave."
-  ;;   nil
-  ;;   nil
-  ;;   nil
-  ;;   (if org-latex-auto-toggle
-  ;;       (add-hook 'post-command-hook '+org-post-command-hook nil t)
-  ;;     (remove-hook 'post-command-hook '+org-post-command-hook t)))
-
-  ;; ;;; Update latex options after change theme.
-
-  ;; (defun +org-update-latex-option-by-theme (theme)
-  ;;   (when (bound-and-true-p org-format-latex-options)
-  ;;     (setq org-format-latex-options
-  ;;           (plist-put org-format-latex-options :theme theme))))
-
-  ;; (add-hook '+after-change-theme-hook '+org-update-latex-option-by-theme)
-
-  (eval-after-load 'org
-    '(add-to-list 'org-latex-packages-alist '("" "minted")))
-  (setq org-latex-listings 'minted)
-
-  ;; (setq-default bibtex-dialect 'biblatex)
-
-  ;; For My Thesis
-  (eval-after-load "ox-latex"
-    '(progn
-       (add-to-list 'org-latex-classes
-                    '("ifimaster"
-                      "\\documentclass{ifimaster}
-  [DEFAULT-PACKAGES]
-  [PACKAGES]
-  [EXTRA]
-  \\usepackage{babel,csquotes,ifimasterforside,url,varioref}"
-                      ("\\chapter{%s}" . "\\chapter*{%s}")
-                      ("\\section{%s}" . "\\section*{%s}")
-                      ("\\subsection{%s}" . "\\subsection*{%s}")
-                      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                      ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                      ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-       (add-to-list 'org-latex-classes
-                    '("easychair" "\\documentclass{easychair}"
-                      ("\\section{%s}" . "\\section*{%s}")
-                      ("\\subsection{%s}" . "\\subsection*{%s}")
-                      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                      ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                      ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-       (custom-set-variables '(org-export-allow-bind-keywords t))))
-
-  (eval-after-load 'tex-mode
-    '(setcar (cdr (cddaar tex-compile-commands)) " -shell-escape "))
-
-  (eval-after-load 'ox-latex
-    '(setq org-latex-pdf-process
-           '("latexmk -pdflatex='pdflatex -shell-escape -interaction nonstopmode' -pdf -f %f")))
-#+END_SRC
-
-***** Org-Presentation
-#+NAME:
-#+BEGIN_SRC emacs-lisp
-  (use-package presentation
-    :straight t
-    :config
-    (global-set-key (kbd "<M-f5>") (lambda ()
-                                     (interactive)
-                                     (if presentation-mode
-                                         (presentation-mode 0)
-                                       (presentation-mode 1))
-                                     (toggle-frame-fullscreen))))
-#+END_SRC
-
-***** Org-Ref
-#+NAME:
-#+BEGIN_SRC emacs-lisp
-  (use-package org-ref
-    ;; :custom ((org-ref-ivy-cite-completion t)
-    ;;          (org-ref-completion-library 'org-ref-ivy-cite))
-    :config
-    (require 'org-ref)
-    (require 'org-ref-pdf)
-    (require 'org-ref-bibtex)
-    (require 'org-ref-url-utils)
-    (setq reftex-default-bibliography "~/Dropbox/org/biblio/ref.bib"
-          org-ref-default-bibliography '("~/Dropbox/org/biblio/ref.bib")
-          org-ref-bibliography-notes "~/Dropbox/org/biblio/notes.org"
-          org-ref-pdf-directory "~/Dropbox/org/biblio/papers/"))
-
-#+END_SRC
-
-***** Org-SuperStar
-#+NAME:
-#+BEGIN_SRC emacs-lisp
-  (use-package org-superstar
-          :straight t
-          :config
-          (setq org-superstar-headline-bullets-list '("●")
-                org-superstar-leading-bullet "  ")
-          :hook (org-mode . org-superstar-mode))
-#+END_SRC
-
-***** Org-Tables
-#+NAME:
-#+BEGIN_SRC emacs-lisp
-  (use-package org-table-sticky-header
-    :ensure t
-    :config
-    (add-hook 'org-mode-hook #'org-table-sticky-header-mode))
+  ;; (use-package auctex
+  ;;   :straight t)
 #+END_SRC
 
 * Footer

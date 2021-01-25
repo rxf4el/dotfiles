@@ -24,7 +24,7 @@
 ;; (run-shell-command "emacs --daemon")
 
 ;; Change Prefix-Key
-(set-prefix-key (kbd "s-o"))
+(set-prefix-key (kbd "s-q"))
 
 ;;; defprogram sets the keys to be
 ;;;  s-(key) for just shelling out (command)

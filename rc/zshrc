@@ -26,3 +26,5 @@ alias ee="emacsclient -t $@"
 ###############################
 # ZSH OPTIONS
 ###############################
+
+eval `dircolors ~/.dircolors`

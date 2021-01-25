@@ -11,7 +11,7 @@
 
 (add-to-list 'load-path (expand-file-name "elisp" user-emacs-directory))
 
-(defvar my:cache (concat user-emacs-directory "cache/"))
+(defvar my:cache (concat user-emacs-directory ".cache/"))
 (unless (file-exists-p my:cache)
   (make-directory my:cache))
 
