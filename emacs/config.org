@@ -329,7 +329,7 @@
 
       ;; (use-package circadian
       ;;   :config
-      ;;   (setq circadian-themes '((:sunrise . solarized-light)
+      ;;   (setq circadian-themes '((:sunrise . leuven)
       ;;                            (:sunset . solarized-dark)))
       ;;   :init (circadian-setup))
     #+END_SRC
@@ -906,6 +906,7 @@
     (meow :type git
           :host github
           :repo "DogLooksGood/meow")
+    :disabled t
     :init
     (meow-global-mode 1)
     :custom
