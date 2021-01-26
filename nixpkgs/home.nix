@@ -26,9 +26,6 @@ let
     autorandr vulkan-loader
     # libs
     imlib2 libtool
-    # xorg
-    xclip xorg.xset xorg.xsetroot xorg.xrdb xdotool
-    xorg.xmodmap xorg.xprop xorg.xrandr xorg.xfontsel
   ];
 
   devBase = with pkgs; [
