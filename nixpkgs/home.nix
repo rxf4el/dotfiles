@@ -21,7 +21,7 @@ let
     gnome3.adwaita-icon-theme bibata-cursors-translucent
     # utils
     bat stow htop neofetch zip unzip gzip unrar bzip2 xz
-    dropbox
+    dropbox fd exa
     # video
     autorandr vulkan-loader
     # libs
@@ -76,6 +76,8 @@ in
   };
 
   programs = {
+    alacritty = { enable = true; };
+    
     emacs = { enable = true;
               # package = pkgs.emacsGcc;
               # extraPackages = (epkgs: [ epkgs.vterm ] );

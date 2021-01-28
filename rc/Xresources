@@ -1,4 +1,4 @@
-Xft.dpi: 75.0
+Xft.dpi: 78.0
 
 XTerm.termName: xterm-256color
 
@@ -13,10 +13,10 @@ XTerm.ttyModes: erase ^?
 
 !! Set font
 !! LIST FONTS -$ fc-list :fontformat=TrueType -f "%{family}\n" | sort -u | less 
-!! XTermvt100.faceName: Source Sans Pro:size=11:antialias=true
-!! XTerm.vt100.faceName: Tamsyn:size=12:antialias=true
- XTerm.vt100.faceName: DejaVu Sans Mono:size=11:antialias=true
- XTerm.vt100.boldFont: DejaVu Sans Mono:size=11:antialias=true
+XTermvt100.faceName: MesloGS Nerd Font:size=11:antialias=true
+!! XTerm.vt100.faceName: JetBrainsMono Nerd Font:size=12:antialias=true
+!! XTerm.vt100.faceName: DejaVu Sans Mono:size=11:antialias=true
+!! XTerm.vt100.boldFont: DejaVu Sans Mono:size=11:antialias=true
 !! XTerm.vt100.faceName: Iosevka:size=10:antialias=true
 !! XTerm.vt100.boldFont: Iosevka Bold:size=10:antialias=true
 
@@ -31,7 +31,7 @@ xterm*VT100.Translations: #override \
 !! Xcursor.size: 16
 !! Xcursor.theme: bibata-ghost
 
-!! Color Scheme - rx-Cyberpunk
+! Color Scheme - rx-Cyberpunk
 ! *background:  #000b1e
 ! *foreground:  #0abdc6
 ! *color0:      #123e7c

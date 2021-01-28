@@ -21,7 +21,7 @@
 (run-shell-command "~/.fehbg")
 
 ;; Start Emacs Server
-;; (run-shell-command "emacs --daemon")
+(run-shell-command "emacs --daemon")
 
 ;; Change Prefix-Key
 (set-prefix-key (kbd "C-t"))
@@ -31,11 +31,11 @@
 ;;;  s-(uppercase key) for focusing the window named (command)
 ;;;  C-t C-(upcase key) for "run-or-pull"-ing the window named (command)
 ;;(defprogram conkeror "conkeror" "c" '(:class "Conkeror") :rat t)
-(defprogram emacs "emacs" "e" '(:class "Emacs"))
+(defprogram emacs "emacsclient -c" "e" '(:class "Emacs"))
 (defprogram firefox "firefox" "f" '(:class "Firefox"))
 ;;(defprogram qutebrowser "qutebrowser" "B" '(:class "Qutebrowser"))
 ;;(defprogram urxvt "urxvt" "a" '(:class "Alacritty"))
-(defprogram xterm "xterm" "x" '(:class "xterm"))
+(defprogram alacritty "alacritty" "x" '(:class "Alacritty"))
 ;;(defprogram mpv "mpv \"$(xclip -o)\"" "m" '(:class "mpv"))
 
 ;;; Keyboard special keys

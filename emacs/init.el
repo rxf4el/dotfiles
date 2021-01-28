@@ -33,4 +33,8 @@
 (put 'upcase-region 'disabled nil)
 
 ;;;; init config file
+
 (org-babel-load-file (expand-file-name "~/.emacs.d/config.org"))
+;; (if (display-graphic-p)
+;;     (org-babel-load-file (expand-file-name "~/.emacs.d/config.org"))
+;;   (org-babel-load-file (expand-file-name "~/.emacs.d/config_t.org")))

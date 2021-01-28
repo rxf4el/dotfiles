@@ -30,6 +30,17 @@
 #+END_SRC
 
 * Customs
+** GCmh
+#+NAME: 
+#+BEGIN_SRC emacs-lisp
+  (use-package gcmh
+    :straight t
+    :init (gcmh-mode +1)
+    :config
+    ;; (setq gcmh-high-cons-threshold)
+    )
+#+END_SRC
+
 ** Whoami
 #+NAME:
 #+BEGIN_SRC emacs-lisp
@@ -217,7 +228,7 @@
       (help/on-gui
        (defvar +font-size-current 12 "The preferred font size.")
        (defconst +font-size-ideal +font-size-current "The ideal font for this system.")
-       (defconst +font-base "DejaVu Sans Mono" "The preferred font name.")
+       (defconst +font-base "DejaVuSansMono Nerd Font" "The preferred font name.")
        (defun +font-ok-p ()
          "Is the configured font valid?"
          (interactive)
@@ -321,11 +332,16 @@
         (set-frame-parameter nil 'internal-border-width margin))
 
       (use-package solarized-theme
+        :straight t)
+
+      (use-package tron-legacy-theme
         :straight t
         :config
-        (load-theme 'solarized-dark t)
-        ;; (load-theme 'solarized-light t)
-        )
+        (setq tron-legacy-theme-vivid-cursor t))
+
+      ;; (load-theme 'joker t)
+      (load-theme 'solarized-dark t)
+      ;; (load-theme 'tron-legacy t)
 
       ;; (use-package circadian
       ;;   :config
@@ -906,7 +922,6 @@
     (meow :type git
           :host github
           :repo "DogLooksGood/meow")
-    :disabled t
     :init
     (meow-global-mode 1)
     :custom
@@ -919,6 +934,7 @@
        (motion . "Ꮚ-ꈊ-Ꮚ")))
     :config
     (meow-setup-line-number)
+    (add-to-list 'meow-normal-state-mode-list 'term-mode)
     ;; (add-to-list 'meow-normal-state-mode-list 'inf-iex-mode)
     ;; (add-to-list 'meow-normal-state-mode-list 'py-shell-mode)
     (meow-setup))
@@ -1149,7 +1165,7 @@
         (treemacs-indentation-string " ")
         (treemacs-is-never-other-window nil)
         (treemacs-max-git-entries 5000)
-        (treemacs-no-png-images nil)
+        (treemacs-no-png-images t)
         (treemacs-no-delete-other-windows t)
         (treemacs-project-follow-cleanup nil)
         (treemacs-persist-file (expand-file-name ".cache/treemacs-persist" user-emacs-directory))

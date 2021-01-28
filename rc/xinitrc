@@ -1,3 +1,5 @@
+#!/usr/bin/env sh
+
 # Merge .Xresources 
 [[ -f ~/.Xresources ]] && xrdb -merge -I$HOME ~/.Xresources
 
@@ -21,7 +23,7 @@ xsetroot -cursor_name left_ptr
 
 # Start Services
 # picom &             # XCompositor
-# emacs --daemon      # Emacs-Server (now controled by home-manager)
+# systemctl --user start emacs.service
 
 # Start WM
 exec stumpwm
